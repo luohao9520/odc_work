@@ -1,0 +1,9 @@
+{
+  "name":"attendance-rate-calculator",
+  "version":"1.0.0",
+  "private": true,
+  "description": "Flask, SQLite, and vanilla frontend office attendance web app.",
+  "scripts": {
+    "test": "node ./test/test.js"
+  }
+}

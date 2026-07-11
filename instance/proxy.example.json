@@ -1,0 +1,5 @@
+{
+  "https": "http://login-user:password@intpxy1.hk.hsbc:8080",
+  "http": "http://login-user:password@intpxy1.hk.hsbc:8080",
+  "no-proxy": "*.hsbc"
+}

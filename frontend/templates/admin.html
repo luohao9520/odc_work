@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>系统管理 | 月度出勤率计算器</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <meta name="theme-color" content="#176b4f"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="出勤计算"/>
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body data-page="admin">
+<main class="shell">
+    <nav class="top-nav" aria-label="页面导航">
+        <a class="nav-link" href="./index.html">出勤登记</a>
+        <a class="nav-link" href="./holidays.html">节假日调整</a>
+        <a class="nav-link" href="./seat-booking.html">座位预约</a>
+        <a class="nav-link active admin-only" href="./admin.html">系统管理</a>
+        <a class="nav-link" href="./api-docs.html">接口测试</a>
+        <span id="userBadge" class="nav-nav-user">未登录</span>
+        <button id="logoutBtn" class="nav-logout" type="button">退出</button>
+    </nav>
+
+    <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+            <p class="eyebrow">Admin Console</p>
+            <h1 id="page-title">系统管理</h1>
+            <p class="lede">管理后台可控制数据定期清理。当前策略：考勤/加班保留 12 个月，座位预订计划保留 6 个月，座位预订运行日志保留 3 个月，可按需调整。</p>
+        </div>
+        <div class="hero-badge" aria-label="管理员状态">
+            <span>Role:</span>
+            <strong>Admin</strong>
+            <small id="adminBadge">校验中</small>
+        </div>
+    </section>
+
+    <section class="workspace admin-workspace">
+        <section class="panel admin-panel admin-users-panel" aria-labelledby="user-access-title">
+            <div class="section-title">
+                <p class="eyebrow">User Access</p>
+                <h2 id="user-access-title">用户角色与页面权限</h2>
+            </div>
+            <small id="userAccessStatus" class="hint">管理员可分配普通用户/管理员角色，以及每个用户可访问的页面。</small>
+            <div id="userAccessList" class="admin-user-list" aria-live="polite"></div>
+        </section>
+        <section class="panel admin-panel" aria-labelledby="cleanup-title">
+            <div class="section-title">
+                <h2 id="cleanup-title">数据清理策略</h2>
+            </div>
+            <div>
+                <label class="switch-row" for="cleanupSchedulerToggle">
+                    <input id="cleanupSchedulerToggle" type="checkbox" role="switch"/>
+                    <span class="switch-slider" aria-hidden="true"></span>
+                    <span id="cleanupScheduledText">定期清理关闭</span>
+                </label>
+            </div>
+            <form id="cleanupForm" class="admin-cleanup-form">
+                <div class="field">
+                    <label for="attendanceRetentionInput">考勤保留 (月)</label>
+                    <input id="attendanceRetentionInput" type="number" min="1" max="60" step="1" value="12"/>
+                </div>
+                <div class="field">
+                    <label for="overtimeRetentionInput">加班保留 (月)</label>
+                    <input id="overtimeRetentionInput" type="number" min="1" max="60" step="1" value="12"/>
+                </div>
+                <div class="field">
+                    <label for="planRetentionInput">座位计划保留 (月)</label>
+                    <input id="planRetentionInput" type="number" min="1" max="60" step="1" value="6"/>
+                </div>
+                <div class="field">
+                    <label for="runRetentionInput">运行日志保留 (月)</label>
+                    <input id="runRetentionInput" type="number" min="1" max="60" step="1" value="3"/>
+                </div>
+                <div class="seat-booking-actions">
+                    <button id="saveCleanupBtn" class="primary-button" type="submit">保存策略</button>
+                    <button id="previewCleanupBtn" type="button">预览清理</button>
+                    <button id="runCleanupBtn" class="danger-button" type="button">立即清理</button>
+                </div>
+            </form>
+        </section>
+        <aside class="panel admin-panel" aria-labelledby="cleanup-status-title">
+            <p class="eyebrow">状态</p>
+            <h2 id="cleanup-status-title">清理状态</h2>
+            <div class="seat-scheduler-card">
+                <span>调度器</span>
+                <strong id="cleanupSchedulerStatus">--</strong>
+                <small id="cleanupSchedulerDetail">正在加载</small>
+            </div>
+            <div class="seat-scheduler-card">
+                <span>上次执行</span>
+                <strong id="cleanupLastRun">--</strong>
+                <small id="cleanupLastMessage">尚未执行</small>
+            </div>
+            <div class="seat-scheduler-card">
+                <span>清理预览</span>
+                <strong id="cleanupResultTotal">--</strong>
+                <small id="cleanupResultDetail">点击“预览清理”可先查看影响范围。</small>
+            </div>
+        </aside>
+        </div>
+    </section>
+</main>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

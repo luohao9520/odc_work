@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>接口文档与测试 | 月度出勤率计算器</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#176b4f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="出勤计算器" />
+  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body data-page="api-docs">
+<main class="shell">
+  <nav class="top-nav" aria-label="页面导航">
+    <a class="nav-link" href="./index.html">出勤登记</a>
+    <a class="nav-link" href="./holidays.html">节假日调整</a>
+    <a class="nav-link" href="./seat-booking.html">座位预约</a>
+    <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
+    <a class="nav-link active" href="./api-docs.html">接口测试</a>
+    <span id="userBadge" class="nav-user">未登录</span>
+    <button id="logoutBtn" class="nav-logout" type="button">退出</button>
+  </nav>
+  <section class="hero" aria-labelledby="page-title">
+    <div class="hero-copy">
+      <p class="eyebrow">API Workbench</p>
+      <h1 id="page-title">接口文档与测试</h1>
+      <p class="lede">使用当前登录会话测试本地 Flask API。选择接口、调整请求体后点击发送，响应会显示在页面下方。</p>
+    </div>
+    <div class="hero-badge" aria-label="接口测试">
+      <span>Local</span>
+      <strong>API</strong>
+      <small>当前会话测试</small>
+    </div>
+  </section>
+  <section class="workspace api-workspace">
+    <section class="panel api-panel" aria-labelledby="api-list-title">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Endpoints</p>
+          <h2 id="api-list-title">常用接口</h2>
+        </div>
+      </div>
+      <p id="apiDocsStatus" class="hint">正在加载接口清单...</p>
+      <div id="endpointlist" class="endpoint-list"></div>
+    </section>
+    <aside class="panel explainer api-tester" aria-labelledby="custom-test-title">
+      <p class="eyebrow">Custom Request</p>
+      <h2 id="custom-test-title">自定义请求</h2>
+      <div class="field">
+        <label for="apiMethodSelect">Method</label>
+        <select id="apiMethodSelect">
+          <option>GET</option>
+          <option>POST</option>
+          <option>PUT</option>
+          <option>PATCH</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="apiPathInput">Path</label>
+        <input id="apiPathInput" value="/api/me" />
+      </div>
+      <div class="field field--wide">
+        <label for="apiBodyInput">JSON Body</label>
+        <textarea id="apiBodyInput" spellcheck="false" placeholder="GET 请求可留空"></textarea>
+      </div>
+      <button id="sendCustomApiBtn" class="primary-button" type="button">发送自定义请求</button>
+      <p class="hint">提示：除登录/注册接口外，大多数接口需要先登录。</p>
+      <pre id="customApiResponse" aria-label="api-response" aria-live="polite">尚未发送</pre>
+    </aside>
+  </section>
+</main>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

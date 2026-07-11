@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>座位预约 | 月度出勤率计算器</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#176b4f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="出勤计算器" />
+  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body data-page="seat-booking">
+<main class="shell">
+  <nav class="top-nav" aria-label="页面导航">
+    <a class="nav-link" href="./index.html">出勤登记</a>
+    <a class="nav-link" href="./holidays.html">节假日调整</a>
+    <a class="nav-link active" href="./seat-booking.html">座位预约</a>
+    <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
+    <a class="nav-link" href="./api-docs.html">接口测试</a>
+    <span id="userBadge" class="nav-user">未登录</span>
+    <button id="logoutBtn" class="nav-logout" type="button">退出</button>
+  </nav>
+
+  <section class="hero" aria-labelledby="page-title">
+    <div class="hero-copy seat-hero-copy">
+      <p class="eyebrow">Seat Booking Assistant</p>
+      <h1 id="page-title">定时预约座位</h1>
+      <p class="lede">连接外部会议座位平台，通过月历选择预约日期，保存偏好座位和覆盖预约规则，你可以立即预约，也可启用本地定时任务自动提交。</p>
+    </div>
+    <div class="hero-badge" aria-label="预约状态">
+      <span>自动</span>
+      <strong>Seat</strong>
+      <small id="seatBookingBadge">未启用</small>
+    </div>
+  </section>
+
+  <section class="workspace seat-booking-workspace">
+    <section class="panel seat-booking-panel" aria-labelledby="seat-config-title">
+      <div class="section-title">
+        <p class="eyebrow">Booking Setup</p>
+        <h2 id="seat-config-title">预约配置</h2>
+      </div>
+      <form id="seatBookingForm" class="seat-booking-form">
+        <div class="field">
+          <label for="seatExternalUsername">外部平台账号</label>
+          <input id="seatExternalUsername" autocomplete="username" placeholder="例如 admin123" />
+        </div>
+        <div class="field">
+          <label for="seatExternalPassword">外部平台密码</label>
+          <input id="seatExternalPassword" type="password" autocomplete="current-password" placeholder="留空表示不修改已保存密码" />
+        </div>
+        <div class="field">
+          <label for="seatBookingTime">定时提交时间</label>
+          <input id="seatBookingTime" type="time" value="08:30" />
+        </div>
+        <div class="field">
+          <label for="seatAdvanceDays">提前预约天数</label>
+          <select id="seatAdvanceDays">
+            <option value="0">当天预约</option>
+            <option value="1">提前 1 天</option>
+            <option value="2">提前 2 天</option>
+            <option value="3">提前 3 天</option>
+            <option value="4">提前 4 天</option>
+            <option value="5">提前 5 天</option>
+            <option value="6">提前 6 天</option>
+            <option value="7">提前 7 天</option>
+          </select>
+        </div>
+        <label class="switch-row seat-booking-switch">
+          <input id="seatBookingEnabled" type="checkbox" />
+          <span class="switch-slider" aria-hidden="true"></span>
+          <span>启用定时预约</span>
+        </label>
+        <div class="seat-booking-actions">
+          <button id="saveSeatBookingBtn" class="primary-button" type="submit">保存配置</button>
+          <button id="syncSeatBookingBtn" type="button">同步平台预约</button>
+        </div>
+        <input id="seatBookingDate" type="hidden" />
+      </form>
+      <p id="seatBookingStatus" class="formula">正在加载座位预约配置...</p>
+    </section>
+
+    <aside class="panel explainer" aria-labelledby="seat-help-title">
+      <p class="eyebrow">Scheduler</p>
+      <h2 id="seat-help-title">定时任务说明</h2>
+      <ol>
+        <li>先保存外部平台账号和密码，再在日历中点选日期并选取座位。</li>
+        <li>如启用自动提交，请打开“启用定时预约”，并为日历中的日期保存预约座位。</li>
+        <li>内置调度器会检查到期自动执行预约计划，成功或失败结果会写入右侧执行记录并自动刷新。</li>
+        <li>若未启用定时预约，系统只保存座位选择，不会自动提交。</li>
+        <li>直接预约只针对明天至 7 天后的日期，可在选日期后从座位卡片提交。</li>
+        <li>已在外界平台预约过的记录，可点击“同步平台预约”显示到当前日历；右侧“显示日志”开关可临时收起任务记录。</li>
+      </ol>
+      <div class="holiday-source-card seat-scheduler-card">
+        <strong>内置调度器</strong>
+        <p id="seatSchedulerStatus" class="hint">正在装载调度状态...</p>
+      </div>
+    </aside>
+  </section>
+
+  <section id="seatBookingGrid" class="seat-booking-grid">
+    <section class="panel seat-calendar-panel" aria-labelledby="seat-calendar-title">
+      <div class="section-title">
+        <p class="eyebrow">Booking Calendar</p>
+        <h2 id="seat-calendar-title">预约日历</h2>
+      </div>
+      <div class="seat-calendar-tools">
+        <label class="switch-row seat-log-switch" for="seatRunLogVisible">
+          <input id="seatRunLogVisible" type="checkbox" checked aria-controls="seatRunPanel" />
+          <span class="switch-slider" aria-hidden="true"></span>
+          <span>显示日志</span>
+        </label>
+        <div class="seat-calendar-controls">
+          <button id="seatPrevMonthBtn" type="button" aria-label="上个月">‹</button>
+          <select id="seatCalendarMonth" aria-label="选择预约月份"></select>
+          <button id="seatNextMonthBtn" type="button" aria-label="下个月">›</button>
+        </div>
+      </div>
+      <div class="weekday-row seat-calendar-weekdays" aria-hidden="true">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div id="seatCalendarGrid" class="seat-calendar-grid" aria-live="polite"></div>
+      <p id="seatCalendarSummary" class="hint">请选择预约日期。</p>
+      <div class="seat-picker-inline" aria-labelledby="seat-list-title">
+        <div class="seat-picker-inline__head">
+          <p class="eyebrow">Seat List</p>
+          <h2 id="seat-list-title">日历内选座</h2>
+        </div>
+        <button id="seatPickerCloseBtn" class="seat-picker-close" type="button" aria-label="关闭选座列表">×</button>
+      </div>
+      <div class="seat-filter-bar">
+        <div class="field">
+          <label for="seatFilterInput">筛选座位号</label>
+          <input id="seatFilterInput" placeholder="例如 20-A, 20-B-092" />
+        </div>
+        <small id="seatFilterSummary" class="smart-strategy-hint">尚未加载座位</small>
+      </div>
+      <div id="seatList" class="seat-list" aria-live="polite"></div>
+    </section>
+    <section id="seatRunPanel" class="panel seat-list-panel" aria-labelledby="seat-runs-title">
+      <div class="section-title">
+        <p class="eyebrow">Run History</p>
+        <h2 id="seat-runs-title">执行记录</h2>
+      </div>
+      <div id="seatRunList" class="seat-run-list" aria-live="polite"></div>
+    </section>
+  </section>
+</main>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "月度出勤率计算器",
+  "short_name": "出勤计算器",
+  "description": "按用户保存出勤登记、节假日调整，并计算月度公司出勤率。",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffaf9",
+  "theme_color": "#176b4f",
+  "orientation": "portrait-primary",
+  "lang": "zh-CN",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
