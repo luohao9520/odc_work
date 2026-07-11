@@ -1,9 +1,17 @@
 {
-  "name":"attendance-rate-calculator",
-  "version":"1.0.0",
+  "name": "attendance-rate-calculator",
+  "version": "1.0.0",
   "private": true,
   "description": "Flask, SQLite, and vanilla frontend office attendance web app.",
   "scripts": {
-    "test": "node ./test/test.js"
-  }
+    "test": "node ./tests/test_frontend_logic.js && python -m unittest tests.test_backend tests.test_init_db tests.test_run_config",
+    "test:js": "node ./tests/test_frontend_logic.js",
+    "test:py": "python -m unittest tests.test_backend tests.test_init_db tests.test_run_config",
+    "serve": "python ./run.py",
+    "dev": "python ./run.py --reload",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "node --check ./frontend/static/js/app.js",
+    "lint:backend": "python -m compileall -q ./backend ./tests ./scripts ./run.py"
+  },
+  "devDependencies": {}
 }
