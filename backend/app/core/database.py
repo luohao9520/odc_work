@@ -4,7 +4,7 @@ import sqlite3
 
 from flask import current_app, g
 
-# attendance.source  记录一条登记由谁产生：
+# `attendance.source`  记录一条登记由谁产生：
 # - manual：用户点击日期卡片产生，不能被智能/批量设置覆盖。
 # - bulk：由“工作日全设为公司”产生，后续可以重新生成
 # - smart： 由智能排班产生，后续可以重新生成。
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS holidays (
     PRIMARY KEY(user_id, holiday_date),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS holiday_synces (
+CREATE TABLE IF NOT EXISTS holiday_syncs (
     user_id INTEGER NOT NULL,
     year INTEGER NOT NULL,
     source TEXT NOT NULL,
@@ -106,13 +106,13 @@ CREATE TABLE IF NOT EXISTS seat_booking_scheduler_state (
     locked_until TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS data_cleanup_setting (
+CREATE TABLE IF NOT EXISTS data_cleanup_settings (
     id INTEGER PRIMARY KEY CHECK(id = 1),
     scheduled_enabled INTEGER NOT NULL DEFAULT 0,
     attendance_retention_months INTEGER NOT NULL DEFAULT 12,
     overtime_retention_months INTEGER NOT NULL DEFAULT 12,
     seat_booking_plan_retention_months INTEGER NOT NULL DEFAULT 6,
-    seat_booking_run_retention_months INTEGER NOT NULL DEFAULT 6,
+    seat_booking_run_retention_months INTEGER NOT NULL DEFAULT 3,
     updated_at TEXT NOT NULL,
     last_run_at TEXT,
     last_message TEXT
@@ -153,7 +153,7 @@ def init_db() -> None:
     if "advance_days" not in seat_booking_columns:
         db.execute("ALTER TABLE seat_booking_settings ADD COLUMN advance_days INTEGER NOT NULL DEFAULT 0")
     db.execute(
-        "INSERT OR IGNORE INTO data_cleanup_setting "
+        "INSERT OR IGNORE INTO data_cleanup_settings "
         "(id, scheduled_enabled, attendance_retention_months, overtime_retention_months, "
         "seat_booking_plan_retention_months, seat_booking_run_retention_months, updated_at) "
         "VALUES (1, 0, 12, 12, 6, 3, datetime('now'))"

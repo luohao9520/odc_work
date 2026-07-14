@@ -12,18 +12,18 @@ STATUS_LEAVE = "leave"
 STRATEGY_RECOMMENDED = "recommended"
 STRATEGY_ALGORITHMIC = "algorithmic"
 STRATEGY_WEEKLY_BALANCED = "weekly-balanced"
-STRATEGY_MON_TUE_WED = "prefer-non-tue-wed"
+STRATEGY_MON_TUE_WED = "prefer-mon-tue-wed"
 STRATEGY_PREFER_TUE_THU = "prefer-tue-thu"
 STRATEGY_WED_THU_FRI = "prefer-wed-thu-fri"
-STRATEGY_MON_WED_FRI = "prefer-non-wed-fri"
+STRATEGY_MON_WED_FRI = "prefer-mon-wed-fri"
 STRATEGY_CONSECUTIVE = "consecutive"
 STRATEGY_SPREAD = "spread"
 SMART_SCHEDULE_STRATEGIES = {
     STRATEGY_RECOMMENDED: "智能算法推荐",
-    STRATEGY_MON_TUE_WED: "周一三优先",
+    STRATEGY_MON_TUE_WED: "周一二三优先",
     STRATEGY_PREFER_TUE_THU: "周二四优先",
-    STRATEGY_WED_THU_FRI: "周三四优先",
-    STRATEGY_MON_WED_FRI: "周一五优先",
+    STRATEGY_WED_THU_FRI: "周三四五优先",
+    STRATEGY_MON_WED_FRI: "周一三五优先",
 }
 SMART_SCHEDULE_INTERNAL_LABELS = {
     **SMART_SCHEDULE_STRATEGIES,
@@ -36,7 +36,7 @@ STRATEGY_ALIASES = {
     STRATEGY_SPREAD: STRATEGY_MON_WED_FRI,
 }
 WEEKDAY_NAMES = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-WEEKDAY_PRIOR_PROBABILITIES = {0: 0.50, 1: 0.50, 2: 0.50, 3: 0.50, 4: 0.50, 5: 0.50, 6: 0.50}  # 注意含7，可能为笔误
+WEEKDAY_PRIOR_PROBABILITIES = {0: 0.58, 1: 0.50, 2: 0.56, 3: 0.50, 4: 0.54, 5: 0.25, 6: 0.25}  # 注意含7，可能为笔误
 WEEKDAY_PRIOR_STRENGTH = 2.0
 
 
@@ -63,7 +63,7 @@ def build_weekday_profile(history: list[dict] | None) -> dict:  # Ethan Luo
     "office" 是正样本，'home' 是负样本，'leave' 不代表办公偏好所以不参与训练。
     近期记录权重更高，每个星期再叠加一个很弱的先验，避免少样本导致预测极端化。
     """
-    manual_items = [item for item in history or [] if item.get("status") in {STATUS_OFFICE, STATUS_HOME}]
+    manual_items = [item for item in (history or []) if item.get("status") in {STATUS_OFFICE, STATUS_HOME}]
     office_samples = sum(1 for item in manual_items if item.get("status") == STATUS_OFFICE)
     office_weight = {weekday: 0.0 for weekday in range(7)}
     decision_weight = {weekday: 0.0 for weekday in range(7)}
@@ -91,7 +91,7 @@ def build_weekday_profile(history: list[dict] | None) -> dict:  # Ethan Luo
     for weekday in range(7):
         prior = WEEKDAY_PRIOR_PROBABILITIES[weekday] * WEEKDAY_PRIOR_STRENGTH
         weekday_probabilities[weekday] = (office_weight[weekday] + prior) / (decision_weight[weekday] + WEEKDAY_PRIOR_STRENGTH)
-    top_weekdays = [weekday for weekday, score in sorted(weekday_probabilities.items(), key=lambda item: (item[1], item[0])) if office_weight[weekday] > 0][:3]
+    top_weekdays = [weekday for weekday, score in sorted(weekday_probabilities.items(), key=lambda item: (-item[1], item[0])) if office_weight[weekday] > 0][:3]
     return {
         "samples": len(manual_items),
         "officeSamples": office_samples,

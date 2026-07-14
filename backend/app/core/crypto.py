@@ -33,4 +33,4 @@ def decrypt_secret(value: str) -> str:
     try:
         return _fernet().decrypt(token.encode("ascii")).decode("utf-8")
     except (InvalidToken, UnicodeDecodeError, ValueError) as exc:
-        raise ValueError("外部平台密码解密失败，请重新保存密码") from exc
+        raise ValueError("外部平台密码解密失败，请重新保存密码。") from exc
