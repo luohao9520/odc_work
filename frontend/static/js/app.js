@@ -1377,7 +1377,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                     button.classList.toggle('past-current-week-booking', pastCurrentWeekBooking);
                     button.disabled = pastDate;
                     button.title = pastCurrentWeekBooking ? '本周已过去的预约记录可取消，但不能重新预约' : '';
-                    button.innerHTML = `<strong>${current.getDay()}</strong>><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}{</small>${bookedSeat ?
+                    button.innerHTML = `<strong>${current.getDate()}</strong><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}</small>${bookedSeat ?
                         `<span class="seat-calendar-seat ${bookedSeat.status || 'pending'}">${escapeHtml(bookedSeat.seatName || bookedSeat.seatId)} · ${bookedSeat.status === 'success' ?
                             '成功' : '预约中'}</span>` : ''}`;
                     button.addEventListener('click', async () => {
@@ -1389,7 +1389,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                     cell.appendChild(button)
                     if (button) {
                         const actions = document.createElement('div');
-                        action.className = 'seat-calendar-actions';
+                        actions.className = 'seat-calendar-actions';
                         if (bookedSeat.status !== 'success') {
                             const bookNow = document.createElement('button');
                             bookNow.type = 'button';
@@ -1406,7 +1406,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                         const cancel = document.createElement('button');
                         cancel.type = 'button';
                         cancel.className = 'seat-calendar-cancel danger-button';
-                        cancel.textContent = bookedSeat.cancel.status === 'success' ? '取消预约' : '取消计划';
+                        cancel.textContent = bookedSeat.status === 'success' ? '取消预约' : '取消计划';
                         cancel.addEventListener('click', async (event) => {
                             event.stopPropagation();
                             const confirmText = bookedSeat.status === 'success' ? `确认取消 ${iso} 的已成功座位预约吗？将同步提交到外部平台。` : `确认取消 ${iso} 的预约计划吗？`;
@@ -1415,7 +1415,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                             await refreshSeatBookingMonth();
                             statusText.textContent = `${iso} 的座位预约已取消。`;
                         });
-                        action.appendChild(cancel);
+                        actions.appendChild(cancel);
                         cell.appendChild(actions);
                     }
                     if (seatPickerVisible && iso === selectedBookingDate && seatPickerInline) {
@@ -1426,7 +1426,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 if (calendarSummary) {
                     const advanceDays = Number(advanceDaysInput.value || 0);
                     calendarSummary.textContent = selectedBookingDate
-                        ? `已选择 ${selectedBookingDate}，将在提前 ${advanceDays.value || 3} 天 ${(bookingTimeInput.value || "08:30")} 尝试预约。`
+                        ? `已选择 ${selectedBookingDate}，将在提前 ${advanceDays} 天 ${(bookingTimeInput.value || "08:30")} 尝试预约。`
                         : `请选择预约日期。`;
                 }
             }
@@ -1447,7 +1447,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 usernameInput.value = settings.externalUsername || "";
                 passwordInput.placeholder = settings.hasPassword ? "已保存密码，此处表示不修改" : "请输入外部平台密码";
                 selectedBookingDate = settings.bookingDate || todayPlus(3);
-                if (!options.presservePicker) seatPickerVisible = false;
+                if (!options.preservePicker) seatPickerVisible = false;
                 bookingDateInput.value = selectedBookingDate;
                 calendarMonth = selectedBookingDate.slice(0,7);
                 bookingTimeInput.value = settings.bookingTime || '08:30';
@@ -1511,7 +1511,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
             `;
                     card.querySelector('[data-action="plan"]').addEventListener('click', async () => {
                         if (!selectedBookingDate) return;
-                        const data =  apiFetch('/api/seat-booking/plan', {
+                        const data = await apiFetch('/api/seat-booking/plan', {
                             method: 'PUT',
                             body: JSON.stringify({bookingDate: selectedBookingDate, seatId: seat.id, seatName: seat.name || seat.id}),
                         });
@@ -1546,9 +1546,9 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
             }
 
             function updateRunLogVisibility() {
-                if(!runPanel || !runLogVisibleInput) return;
+                if (!runPanel || !runLogVisibleInput) return;
                 const visible = runLogVisibleInput.checked;
-                runLog.hidden = !visible;
+                runPanel.hidden = !visible;
                 runLogVisibleInput.setAttribute('aria-expanded', String(visible));
                 if (seatBookingGrid) seatBookingGrid.classList.toggle('logs-hidden', !visible);
             }
