@@ -706,13 +706,13 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
             }
 
             function updateSmartStrategyHint() {
-                if (!smartStrategyMint) return;
-                const recommendation = state.smartSchedule && typeof state.smartSchedule.recommendation;
+                if (!smartStrategyHint) return;
+                const recommendation = state.smartSchedule && state.smartSchedule.recommendation;
                 // 提示文案
                 if (smartStrategySelect && smartStrategySelect.value === 'recommended' && recommendation) {
-                    smartStrategyMint.textContent = `智能推荐：${recommendation.label}。${recommendation.reason} 当前范围：${scheduleScopeText()}。`;
+                    smartStrategyHint.textContent = `智能推荐：${recommendation.label}。${recommendation.reason} 当前范围：${scheduleScopeText()}。`;
                 } else {
-                    smartStrategyMint.textContent = `当前使用：${selectedStrategyLabel()}。范围：${scheduleScopeText()}，优先满足每周 ${state.targetRate}% 公司打卡。`;
+                    smartStrategyHint.textContent = `当前使用：${selectedStrategyLabel()}。范围：${scheduleScopeText()}，优先满足每周 ${state.targetRate}% 公司打卡。`;
                 }
             }
 
@@ -819,7 +819,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                     ? '本月暂无可统计工作日'
                     : result.passed
                         ? `已超过最低要求 ${result.officeDays - result.requiredOfficeDays} 天`
-                        : `还需公司打卡 ${result / remainingDays} 天`;
+                        : `还需公司打卡 ${result.remainingDays} 天`;
                 requiredDays.textContent = result.requiredOfficeDays
                 officeDays.textContent = result.officeDays
                 remainingDays.textContent = result.remainingDays
@@ -840,12 +840,12 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                     `整月出勤率 = 整月公司打卡天数 ÷ 整月应统计工作日 = ${result.officeDays} ÷ ${result.denominator} = ${ratePercentText}`,
                     `截至今日出勤率 = 截至今日公司打卡天数 ÷ 截至今日应统计工作日 = ${toToday.officeDays} ÷ ${toToday.denominator} = ${rateToTodayText}`,
                     `达标线 = ceil(应统计工作日 × 目标出勤率) = ceil(${result.denominator} × ${targetRate}%) = ${result.requiredOfficeDays} 天`,
-                    '分母包含：公司打卡、居家帮、未选的可统计工作日，请假按休息日处理，不计入坟墓；分子只包含公司打卡。'
+                    '分母包含：公司打卡、居家帮、未选的可统计工作日，请假按休息日处理，不计入分母；分子只包含公司打卡。'
                 ].join('\n');
                 const monthHolidayCount = state.dayOverrides.filter((item) => item.isHoliday !== false).length;
-                const monthWorkdayCOunt = state.dayOverrides.filter((item) => item.isHoliday === false).length;
+                const monthWorkdayCount = state.dayOverrides.filter((item) => item.isHoliday === false).length;
                 holidaySummary.textContent = `${monthValue.slice(0, 4)} 年休息日 ${state.holidayCountForYear} 天，补班日 ${state.workdayCountForYear} 天，
-                本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCOunt} 天`;
+                本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCount} 天`;
                 updateSmartStrategyHint();
             }
 
@@ -871,7 +871,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
 
                 smartScheduleBtn.addEventListener('click', async () => {
                     const strategy =smartStrategySelect ? smartStrategySelect.value : 'weekly-balaned';
-                    const includePast = includePast;
+                    const includePast = includePastDates();
                     // 智能排班不会覆盖手动选择，只会在当前日期范围内重新生成 bulk/smart 记录
                     if (!(await confirmAction(`将被⌈${selectedStrategyLabel()}⌋ 对 ${selectedMonthValue()} 中 ${scheduleScopeText()}进行智能排班，不会覆盖你手动选择的日期，是否继续？`,
                         {title: '确认智能排班', confirmText: '开始排班', tone: 'primary'}))) return;
@@ -911,11 +911,11 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 if(smartStrategySelect) smartStrategySelect.addEventListener('change', updateSmartStrategyHint);
                 if(includePastToggle) includePastToggle.addEventListener('change', updateSmartStrategyHint);
                 if(confirmDialog && confirmDialogCancel && confirmDialogClose && confirmDialogConfirm) {
-                    confirmDialogCancel().addEventListener('click', () => confirmDialog(false));
-                    confirmDialogClose().addEventListener('click', () => confirmDialog(false));
-                    confirmDialogConfirm().addEventListener('click', () => confirmDialog(true));
+                    confirmDialogCancel.addEventListener('click', () => closeConfirmDialog(false));
+                    confirmDialogClose.addEventListener('click', () => closeConfirmDialog(false));
+                    confirmDialogConfirm.addEventListener('click', () => closeConfirmDialog(true));
                     confirmDialog.addEventListener('click', (event) => {
-                        if (event.target === confirmDialogCancel) confirmDialog(false)
+                        if (event.target === confirmDialog) closeConfirmDialog(false);
                     });
                     document.addEventListener('keydown', (event) => {
                         if (confirmDialog.classList.contains('hidden')) return;
@@ -1001,7 +1001,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 sourceUserSelect.innerHTML = '';
                 const placeholder = document.createElement('option');
                 placeholder.value = '';
-                placeholder.textContent = data.user.length ? '请选择用户' : '暂无其他用户';
+                placeholder.textContent = data.users.length ? '请选择用户' : '暂无其他用户';
                 sourceUserSelect.appendChild(placeholder);
                 data.users.forEach((user) => {
                     const option = document.createElement('option');
@@ -1152,7 +1152,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 {method: 'GET', path: '/api/me', title: '当前用户', description: '读取当前登录用户。'},
                 {method: 'GET', path: '/api/settings', title: '读取目标出勤率', description: '读取当前用户目标出勤率。'},
                 {method: 'PUT', path: '/api/settings', title: '更新目标出勤率', description: '保存当前用户目标出勤率。', body: {targetRate: 60}},
-                {method: 'GET', path: '/api/attendance/descmonth=2026-07', title: '读取月度出勤', description:'返回登记、节假日覆盖与后端权威 summary：summary 同时包含整月出勤率和截至今日出勤率。'},
+                {method: 'GET', path: '/api/attendance?month=2026-07', title: '读取月度出勤', description:'返回登记、节假日覆盖与后端权威 summary：summary 同时包含整月出勤率和截至今日出勤率。'},
                 {method: 'PUT', path: '/api/attendance', title: '保存单日登记', description: 'status 可为 office/home/leave; 传 null 表示清空。', body: {date: '2026-07-01', status: 'office'}},
                 {method: 'POST', path: '/api/attendance/bulk', title: '批量登记', description: '默认只批量设置明天及之后的非手动选择工作日。includePast=true 时包含过去日期和今天。', body: {month: '2026-07', status: 'office', includePast: false}},
                 {method: 'POST', path: '/api/attendance/smart-schedule', title: '智能排班', description: '默认只排明天及之后; 按所选星期组合会尽量满足每周目标公司打卡比例。', body: {month: '2026-07', strategy: 'recommended', includePast: false}},
@@ -1411,7 +1411,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                             event.stopPropagation();
                             const confirmText = bookedSeat.status === 'success' ? `确认取消 ${iso} 的已成功座位预约吗？将同步提交到外部平台。` : `确认取消 ${iso} 的预约计划吗？`;
                             if (!await confirmAction(confirmText, {title: bookedSeat.status === 'success' ? '确认取消预约' : '确认取消计划', confirmText: '确认取消', tone: 'danger'})) return;
-                            await apiFetch(`api/seat-booking/plans?date=${encodeURIComponent(iso)}`, {method: "DELETE"});
+                            await apiFetch(`/api/seat-booking/plans?date=${encodeURIComponent(iso)}`, {method: "DELETE"});
                             await refreshSeatBookingMonth();
                             statusText.textContent = `${iso} 的座位预约已取消。`;
                         });
@@ -1539,7 +1539,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                     card.innerHTML = `
                 <strong>${run.bookingDate} - ${run.seatName || run.seatId || '未指定座位'}</strong>
                 <small>${run.runAt || ''} - ${run.status}</small>
-                <p class="ampty-note">${run.message || '—'}</p>
+                <p class="empty-note">${run.message || '—'}</p>
             `;
                     runList.appendChild(card);
                 });
@@ -1553,7 +1553,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 if (seatBookingGrid) seatBookingGrid.classList.toggle('logs-hidden', !visible);
             }
 
-            async function loadSeatBooking(options = {}){  {
+            async function loadSeatBooking(options = {}) {
                 const monthQuery = options.month ? `?month=${encodeURIComponent(options.month)}` : "";
                 const data = await apiFetch( `/api/seat-booking${monthQuery}`);
                 if (!options.preserveSettings) fillSettings( data.settings || {}, {preservePicker: options.preservePicker});
@@ -1645,7 +1645,7 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                 }
             }
 
-            async function saveSettings(includePassword = false, callback = false, options = {}) {
+            async function saveSettings(includePassword = false, options = {}) {
                 const data = await apiFetch('/api/seat-booking/settings', {
                     method: 'PUT',
                     body: JSON.stringify(readPayload(includePassword)),
