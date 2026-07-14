@@ -27,7 +27,7 @@
 
     function addDays(now, days) {
         const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        value.setDate(value.getDate() + days);
+        date.setDate(date.getDate() + days);
         return isoFromDate(date);
     }
 
@@ -131,7 +131,7 @@
     }
 
     function buildMonthDays(monthValue, holidays) {
-        const [year, month] = string(monthValue).split('-').map(Number);
+        const [year, month] = String(monthValue).split('-').map(Number);
         if (!year || !month) return [];
 
         const overrideMap = new Map(normalizeHolidayItems(holidays).map((item) => [item.date, item]));
@@ -145,7 +145,7 @@
             const override = overrideMap.get(iso);
             const isHolidayOverride = Boolean(override && override.isHoliday);
             const isWorkdayOverride = Boolean(override && override.isWorkday === false);
-            const overrideName = iverrude ? override.name : '';
+            const overrideName = override ? override.name : '';
             days.push({
                 iso,
                 day,
@@ -265,9 +265,9 @@
     let sharedConfirmTrigger = null;
 
     function ensureConfirmDialog() {
-        let dialog= document.getElementById('confirmDialog');
-        if(dialog) return dialog;
-        dialog = document.getElementById('div');
+        let dialog = document.getElementById('confirmDialog');
+        if (dialog) return dialog;
+        dialog = document.createElement('div');
         dialog.id = 'confirmDialog';
         dialog.className = 'confirm-overlay hidden';
         dialog.setAttribute('role', 'presentation');
@@ -293,7 +293,7 @@
         dialog.querySelector('#confirmDialogClose').addEventListener('click', () => closeSharedConfirmDialog(false));
         dialog.querySelector('#confirmDialogConfirm').addEventListener('click', () => closeSharedConfirmDialog(true));
         dialog.addEventListener('click', (event) => {
-            if(event.target===dialog) closeSharedConfirmDialog(false);
+            if (event.target === dialog) closeSharedConfirmDialog(false);
         });
         document.addEventListener('keydown', (event) => {
         if (dialog.classList.contains('hidden')) return;
@@ -450,7 +450,7 @@
                     <h3>${escapeHtml(user.username)}<span class="user-status-badge" ${user.isActive ? 'active' : 'inactive'}>${user.isActive ? '启用' : '停用'}</span></h3>
                     <small class="hint">id=${user.id}${user.createdAt ? ` · ${escapeHtml(user.createdAt)}` : ''} 
 ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</small>
-                    </div>>
+                    </div>
                     <label class="field">
                     <span>角色</span>
                     <select data-role>
@@ -486,46 +486,46 @@ ${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</smal
                         }
                     });
                 });
-                toggleButton.addEventListener('click', async () => {
-                    toggleButton.disabled = true;
+                saveButton.addEventListener('click', async () => {
+                    saveButton.disabled = true;
                     userAccessStatus.textContent = `正在保存${user.username}的权限...`;
                     const accessiblePages = Array.from(card.querySelectorAll('.admin-page-checks input:checked')).map((input) => input.value);
-                    try{
-                    const result = await apiFetch(`/api/admin/users/${user.id}`, {
-                        method: 'POST',
-                        body: JSON.stringify({role:roleSelect.value,accessiblePages:accessiblePages}),
-                    });
-                    const usersData = await apiFetch('/api/admin/users');
-                    renderUsers(usersData);
-                    userAccessStatus.textContent = `${result.user.username} 的权限已保存。`;
-                } catch(error){
+                    try {
+                        const result = await apiFetch(`/api/admin/users/${user.id}`, {
+                            method: 'POST',
+                            body: JSON.stringify({role: roleSelect.value, accessiblePages}),
+                        });
+                        const usersData = await apiFetch('/api/admin/users');
+                        renderUsers(usersData);
+                        userAccessStatus.textContent = `${result.user.username} 的权限已保存。`;
+                    } catch (error) {
                         userAccessStatus.textContent = `保存失败。${error.message}`;
-                    }finally{
+                    } finally {
                         saveButton.disabled = false;
                     }
                 });
                 toggleButton.addEventListener('click', async () => {
                     const nextActive = !user.isActive;
-                    const actionText = nextActive ? "启用" : "停用";
-                    const conFirmed = nextActive || await confirmAction(`停用 ${user.username} 后，该用户将无法登录，已登录会话也会失效；历史数据会保留，确定继续吗？`,
+                    const actionText = nextActive ? '启用' : '停用';
+                    const confirmed = nextActive || await confirmAction(`停用 ${user.username} 后，该用户将无法登录，已登录会话也会失效；历史数据会保留，确定继续吗？`,
                         {
                             title: `确认${actionText}用户`,
-                            confirmText : `确认${actionText}`,
+                            confirmText: `确认${actionText}`,
                             tone: 'danger'
                         });
-                    if (!conFirmed) return;
+                    if (!confirmed) return;
                     toggleButton.disabled = true;
                     userAccessStatus.textContent = `正在${actionText} ${user.username}`;
                     try {
                         const result = await apiFetch(`/api/admin/users/${user.id}/status`, {
                             method: 'PATCH',
-                            body: JSON.stringify({isActive: nextAction}),
+                            body: JSON.stringify({isActive: nextActive}),
                         });
                         const usersData = await apiFetch('/api/admin/users');
                         renderUsers(usersData);
-                        userAccessStatus.textContent = `${user.username} 已${statusText}`;
+                        userAccessStatus.textContent = `${user.username} 已${actionText}`;
                     } catch (error) {
-                        userAccessStatus.textContent = `${statusText}失败: ${error.message}`;
+                        userAccessStatus.textContent = `${actionText}失败: ${error.message}`;
                     } finally {
                         toggleButton.disabled = false;
                     }
