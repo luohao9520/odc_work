@@ -21,9 +21,9 @@ STRATEGY_SPREAD = "spread"
 SMART_SCHEDULE_STRATEGIES = {
     STRATEGY_RECOMMENDED: "智能算法推荐",
     STRATEGY_MON_TUE_WED: "周一二三优先",
-    STRATEGY_PREFER_TUE_THU: "周二四优先",
+    STRATEGY_PREFER_TUE_THU: "周二三四优先",
     STRATEGY_WED_THU_FRI: "周三四五优先",
-    STRATEGY_MON_WED_FRI: "周一三五优先",
+    STRATEGY_MON_WED_FRI: "周一三五分散",
 }
 SMART_SCHEDULE_INTERNAL_LABELS = {
     **SMART_SCHEDULE_STRATEGIES,
@@ -36,7 +36,7 @@ STRATEGY_ALIASES = {
     STRATEGY_SPREAD: STRATEGY_MON_WED_FRI,
 }
 WEEKDAY_NAMES = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-WEEKDAY_PRIOR_PROBABILITIES = {0: 0.58, 1: 0.50, 2: 0.56, 3: 0.50, 4: 0.54, 5: 0.25, 6: 0.25}  # 注意含7，可能为笔误
+WEEKDAY_PRIOR_PROBABILITIES = {0: 0.58, 1: 0.5, 2: 0.56, 3: 0.5, 4: 0.54, 5: 0.25, 6: 0.25}
 WEEKDAY_PRIOR_STRENGTH = 2.0
 
 
@@ -44,24 +44,24 @@ def smart_strategy_label(strategy: str) -> str:
     return SMART_SCHEDULE_INTERNAL_LABELS.get(strategy, SMART_SCHEDULE_STRATEGIES[STRATEGY_MON_WED_FRI])
 
 
-def infer_weekday_pattern(manual_days: list[dict]) -> str:  # Ethan Luo
-    weekdays = [date.fromisoformat(item["date"]).weekday() for item in manual_days]  # 语法错误，原样提取
+def infer_weekday_pattern(manual_days: list[dict]) -> str:
+    weekdays = [date.fromisoformat(item["date"]).weekday() for item in manual_days]
     patterns = {
         STRATEGY_MON_TUE_WED: {0, 1, 2},
         STRATEGY_PREFER_TUE_THU: {1, 2, 3},
         STRATEGY_WED_THU_FRI: {2, 3, 4},
         STRATEGY_MON_WED_FRI: {0, 2, 4},
     }
-    # 按历史星期偏好与候选模式的组合度评分，如果分数相同，按上方声明顺序决断。
+    # 按”历史星期偏好与候选模式的重合度“评分：如果分数相同，按上方声明顺序决胜。
     # 确保同一批历史数据每次都能得到稳定推荐。
     return max(patterns, key=lambda key: (sum(1 for weekday in weekdays if weekday in patterns[key]), -list(patterns).index(key)))
 
 
-def build_weekday_profile(history: list[dict] | None) -> dict:  # Ethan Luo
+def build_weekday_profile(history: list[dict] | None) -> dict:
     """构建可解释的预测画像。
 
-    "office" 是正样本，'home' 是负样本，'leave' 不代表办公偏好所以不参与训练。
-    近期记录权重更高，每个星期再叠加一个很弱的先验，避免少样本导致预测极端化。
+    `office` 是正样本，`home` 是负样本，`leave` 不代表办公偏好所以不参与训练。
+    近期记录权重更高：每个星期再叠加一个很弱的先验，避免少样本导致预测极端化。
     """
     manual_items = [item for item in (history or []) if item.get("status") in {STATUS_OFFICE, STATUS_HOME}]
     office_samples = sum(1 for item in manual_items if item.get("status") == STATUS_OFFICE)
@@ -77,7 +77,7 @@ def build_weekday_profile(history: list[dict] | None) -> dict:  # Ethan Luo
             "topWeekdays": [],
         }
 
-    parsed_items = sorted((date.fromisoformat(item["date"]), item["status"]) for item in manual_items)  # 语法错误
+    parsed_items = sorted((date.fromisoformat(item["date"]), item["status"]) for item in manual_items)
     latest = parsed_items[-1][0]
     for current, status in parsed_items:
         month_delta = (latest.year - current.year) * 12 + latest.month - current.month
@@ -113,7 +113,6 @@ def recommend_smart_strategy(history: list[dict] | None) -> dict:
     只统计手动标记为 "office" 的记录，因为 bulk/smart 生成的记录代表系统之前的安排，
     不能代表用户真实偏好。真正推荐时会考虑每个可选日期单独打分，而不是只能匹配内置选项。
     """
-
     manual_days = [item for item in (history or []) if item.get("status") == STATUS_OFFICE]
     base_strategy = STRATEGY_MON_WED_FRI if len(manual_days) < 2 else infer_weekday_pattern(manual_days)
     profile = build_weekday_profile(history)
@@ -128,9 +127,10 @@ def recommend_smart_strategy(history: list[dict] | None) -> dict:
             "samples": len(manual_days),
             "topWeekdays": [WEEKDAY_NAMES[weekday] for weekday in profile["topWeekdays"]],
         }
+
     top_weekdays = [WEEKDAY_NAMES[weekday] for weekday in profile["topWeekdays"]]
-    top_weekday_text = "、".join(str(value) for value in top_weekdays)  # 缺少引号，原样
-    reason = f"将根据你的历史偏好（{top_weekday_text}按常见）和每周达标要求逐日打分生成。"
+    top_weekday_text = "、".join(str(value) for value in top_weekdays)
+    reason = f"将根据你的历史偏好（{top_weekday_text}较常见）和每周达标要求逐日打分生成。"
 
     return {
         "strategy": STRATEGY_ALGORITHMIC,
@@ -148,9 +148,9 @@ def order_by_weekday_preference(dates: list[str], strategy: str) -> list[str]:
     """按照所选星期组合对候选工作日排序。"""
     preferences = {
         STRATEGY_MON_TUE_WED: {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6},
-        STRATEGY_PREFER_TUE_THU: {1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5},
-        STRATEGY_WED_THU_FRI: {2: 0, 3: 1, 4: 2, 5: 3, 6: 4},
-        STRATEGY_MON_WED_FRI: {0: 0, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6},
+        STRATEGY_PREFER_TUE_THU: {1: 0, 2: 1, 3: 2, 0: 3, 4: 4, 5: 5, 6: 6},
+        STRATEGY_WED_THU_FRI: {2: 0, 3: 1, 4: 2, 1: 3, 0: 4, 5: 5, 6: 6},
+        STRATEGY_MON_WED_FRI: {0: 0, 2: 1, 4: 2, 1: 3, 3: 4, 5: 5, 6: 6},
     }
     preference = preferences.get(strategy, preferences[STRATEGY_MON_WED_FRI])
     return sorted(dates, key=lambda value: (preference[date.fromisoformat(value).weekday()], value))
@@ -161,19 +161,19 @@ def select_office_dates(dates: list[str], needed: int, strategy: str) -> set[str
     return set(order_by_weekday_preference(dates, strategy)[:needed])
 
 
-def score_algorithmic_date(iso_date: str, profile: dict, existing_office_dates: set[str], selected_dates: set[str]) -> tuple[float | int, list[str]]:
+def score_algorithmic_date(iso_date: str, profile: dict, existing_office_dates: set[str], selected_dates: set[str]) -> tuple[float, list[str]]:
     current = date.fromisoformat(iso_date)
     weekday = current.weekday()
     reasons = []
-    probability = profile.get("weekdayProbabilities", profile["weekdayScores"]).get(weekday, WEEKDAY_PRIOR_PROBABILITIES[weekday])  # 参数错误
+    probability = profile.get("weekdayProbabilities", profile["weekdayScores"]).get(weekday, WEEKDAY_PRIOR_PROBABILITIES[weekday])
     score = probability * 100
     if profile["samples"]:
         if probability >= 0.68:
             reasons.append(f"预测{WEEKDAY_NAMES[weekday]}更适合公司打卡")
         elif probability <= 0.42:
             reasons.append(f"历史上{WEEKDAY_NAMES[weekday]}较少选择公司打卡")
-        else:
-            reasons.append(f"历史样本较少，优先选择较分散的工作日")
+    else:
+        reasons.append("历史样本较少，优先选择较分散的工作日")
 
     anchors = {date.fromisoformat(value) for value in existing_office_dates | selected_dates}
     if anchors:
@@ -183,8 +183,8 @@ def score_algorithmic_date(iso_date: str, profile: dict, existing_office_dates: 
             reasons.append("与本周已有公司日保持间隔")
         elif nearest_gap == 1:
             score -= 8
-        else:
-            score += max(0, 2 - abs(weekday - 2)) * 1.5
+    else:
+        score += max(0, 2 - abs(weekday - 2)) * 1.5
 
     reasons.append("本周仍需补足公司打卡")
     return round(score, 4), reasons
@@ -201,14 +201,14 @@ def select_algorithmic_office_dates(dates: list[str], needed: int, history: list
         for iso_date in remaining:
             score, reasons = score_algorithmic_date(iso_date, profile, existing_office_dates, selected)
             scored.append((score, iso_date, reasons))
-        score, iso_date, reasons = max(scored, key=lambda item: (item[0], -date.fromisoformat(item[1]).toordinal()))  # 语法错误
+        score, iso_date, reasons = max(scored, key=lambda item: (item[0], -date.fromisoformat(item[1]).toordinal()))
         selected.add(iso_date)
         remaining.remove(iso_date)
         details.append({"date": iso_date, "status": STATUS_OFFICE, "score": score, "reasons": reasons})
-    return selected, sorted(details, key=lambda item: (item, "date"))  # 语法错误
+    return selected, sorted(details, key=lambda item: item["date"])
 
 
-def calculate_attendance_summary(  # Ethan Luo
+def calculate_attendance_summary(
         month: str,
         selections: dict[str, str],
         holidays: set[str],
@@ -229,11 +229,11 @@ def calculate_attendance_summary(  # Ethan Luo
     working_dates = selectable_workdays(month, holidays, workday_overrides)
 
     # 整月分母，公司/居家/未选择都计入，请假会被移除，因为业务规则把请假视为休息日。
-    leave_days = sum(1 for iso_date in working_dates if selections.get(iso_date) == STATUS_LEAVE)  # iso_selections 应为 selections
-    denominator_dates = [iso_date for iso_date in working_dates if selections.get(iso_date) != STATUS_LEAVE]  # 同上
+    leave_days = sum(1 for iso_date in working_dates if selections.get(iso_date) == STATUS_LEAVE)
+    denominator_dates = [iso_date for iso_date in working_dates if selections.get(iso_date) != STATUS_LEAVE]
     denominator = len(denominator_dates)
-    office_days = sum(1 for iso_date in denominator_dates if selections.get(iso_date) == STATUS_OFFICE)  # 同上
-    home_days = sum(1 for iso_date in denominator_dates if selections.get(iso_date) == STATUS_HOME)  # 空格和大小写问题
+    office_days = sum(1 for iso_date in denominator_dates if selections.get(iso_date) == STATUS_OFFICE)
+    home_days = sum(1 for iso_date in denominator_dates if selections.get(iso_date) == STATUS_HOME)
     unselected_days = denominator - office_days - home_days
     target_rate = max(0, float(target_rate_percent or 0)) / 100
     # 最低公司打卡天数给到上取整，与页面规则说明一致，避免出现小数天数要求。
@@ -242,7 +242,7 @@ def calculate_attendance_summary(  # Ethan Luo
 
     # 截至今日指标复用完全相同的分子/分母规则，但候选日期限制为 <= today。
     # 因此未来未选择的工作日不会拉低当前进度指标。
-    today_cutoff = today or date.today().isformat()  # 拼写错误
+    today_cutoff = today or date.today().isoformat()  # 拼写错误
     to_today_working_dates = [iso_date for iso_date in working_dates if iso_date <= today_cutoff]
     to_today_leave_days = sum(1 for iso_date in to_today_working_dates if selections.get(iso_date) == STATUS_LEAVE)
     to_today_denominator_dates = [iso_date for iso_date in to_today_working_dates if selections.get(iso_date) != STATUS_LEAVE]
@@ -273,7 +273,7 @@ def calculate_attendance_summary(  # Ethan Luo
             "attendanceRate": to_today_attendance_rate,
             "remainingDays": max(0, to_today_required_office_days - to_today_office_days),
             "passed": to_today_office_days >= to_today_required_office_days,
-        }
+        },
     }
 
 
@@ -322,19 +322,19 @@ def build_smart_schedule(
 
         # 可排日期必须同时满足“在用户选择的范围内”且“不是手动保护日期”。手动选择固定不动。
         # smart/bulk 生成的选择可以按日期按排班规则。
-        scheduleable_dates = [iso_date for iso_date in denominator_dates if iso_date not in protected and (adjustable is None or iso_date in adjustable)]
+        schedulable_dates = [iso_date for iso_date in denominator_dates if iso_date not in protected and (adjustable is None or iso_date in adjustable)]
         required = math.ceil(len(denominator_dates) * target_rate)
 
         # 不能被修改的日期仍然计入本周当前公司打卡数，排班规则需要补足剩余缺口。
-        fixed_office_days = sum(1 for iso_date in denominator_dates if iso_date not in scheduleable_dates and selections.get(iso_date) == STATUS_OFFICE)  # 语法错误
+        fixed_office_days = sum(1 for iso_date in denominator_dates if iso_date not in schedulable_dates and selections.get(iso_date) == STATUS_OFFICE)  # 语法错误
         needed_office_days = max(0, required - fixed_office_days)
         if resolved_strategy == STRATEGY_ALGORITHMIC:
-            fixed_office_dates = {iso_date for iso_date in denominator_dates if iso_date not in scheduleable_dates and selections.get(iso_date) == STATUS_OFFICE}
-            office_dates, office_details = select_algorithmic_office_dates(scheduleable_dates, needed_office_days, history, fixed_office_dates)
+            fixed_office_dates = {iso_date for iso_date in denominator_dates if iso_date not in schedulable_dates and selections.get(iso_date) == STATUS_OFFICE}
+            office_dates, office_details = select_algorithmic_office_dates(schedulable_dates, needed_office_days, history, fixed_office_dates)
             recommended_dates.extend(office_details)
         else:
-            office_dates = select_office_dates(scheduleable_dates, needed_office_days, resolved_strategy)
-        for iso_date in scheduleable_dates:
+            office_dates = select_office_dates(schedulable_dates, needed_office_days, resolved_strategy)
+        for iso_date in schedulable_dates:
             planned[iso_date] = STATUS_OFFICE if iso_date in office_dates else STATUS_HOME  # STATUS_NONE 未定义，可能是 STATUS_HOME 或留空
         weekly_plan.append(
             {
@@ -343,7 +343,7 @@ def build_smart_schedule(
                 "officeDays": fixed_office_days + len(office_dates),
                 "requiredOfficeDays": required,
                 "officeDates": sorted(office_dates),
-                "homeDates": [iso_date for iso_date in scheduleable_dates if iso_date not in office_dates],
+                "homeDates": [iso_date for iso_date in schedulable_dates if iso_date not in office_dates],
                 "achievable": fixed_office_days + len(office_dates) >= required,
             }
         )

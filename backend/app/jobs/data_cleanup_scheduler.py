@@ -75,14 +75,14 @@ def try_acquire_cleanup_lease(lease_seconds: int = DEFAULT_LEASE_SECONDS, now: d
     now_text = now.replace(microsecond=0).isoformat()
     db = get_db()
     db.execute("BEGIN IMMEDIATE")
-    row = db.execute("SELECT locked_until FROM secret_booking_scheduler_state WHERE name = ?", (SCHEDULER_NAME,)).fetchone()
+    row = db.execute("SELECT locked_until FROM seat_booking_scheduler_state WHERE name = ?", (SCHEDULER_NAME,)).fetchone()
     if row and row["locked_until"] > now_text:
         db.rollback()
         return False
     db.execute(
-        "INSERT INTO secret_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?)"
-        "ON CONFLICT (name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
-        (SCHEDULER_NAME, locked_until, now_text)
+        "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?)"
+        "ON CONFLICT(name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
+        (SCHEDULER_NAME, locked_until, now_text),
     )
     db.commit()
     return True
@@ -109,15 +109,15 @@ def _scheduler_loop(app: Flask, interval_seconds: int) -> None:
             with app.app_context():
                 settings = get_cleanup_settings()
                 if not scheduled_cleanup_due(settings):
-                    message = "清理开关未启用或已执行"
+                    message = "清理开关未启用或今日执行"
                 elif try_acquire_cleanup_lease(lease_seconds=max(DEFAULT_LEASE_SECONDS, interval_seconds - 60)):
                     result = run_data_cleanup(dry_run=False, vacuum=True)
                     message = result["message"]
                 else:
-                    message = "其他进程持有清理锁，未释放"
-                    _state.update({"running": True, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": message})
+                    message = "其他进程持有清理锁，本轮跳过"
+                _state.update({"running": True, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": message})
         except Exception as exc:  # pragma: no cover - defensive guard for long-running service
-            _state.update({"running": False, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": f"清理调度异常: {exc}"})
+            _state.update({"running": False, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": f"清理调度异常：{exc}"})
         time.sleep(interval_seconds)
 
 
@@ -130,7 +130,7 @@ def start_data_cleanup_scheduler(app: Flask) -> bool:
     with _thread_lock:
         if _thread and _thread.is_alive():
             return True
-        _thread = threading.Thread(target=_scheduler_loop, args=(app, interval_seconds), name="data_cleanup_scheduler", daemon=True)
+        _thread = threading.Thread(target=_scheduler_loop, args=(app, interval_seconds), name="data-cleanup-scheduler", daemon=True)
         _thread.start()
         _state.update({"enabled": True, "running": True, "intervalSeconds": interval_seconds, "threadName": _thread.name, "lastMessage": "已启动，等待清理开关"})
         return True

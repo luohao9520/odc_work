@@ -122,7 +122,7 @@ def read_proxy_config(config_path=PROXY_CONFIG) -> dict[str, str]:
 
 def resolve_proxy_map(env: dict[str, str] | None = None, file_proxies: dict[str, str] | None = None) -> dict[str, str]:
     env = env or os.environ
-    if str(env.get("ATTENDANCE_DISABLE_PROXY", default="")).strip().lower() in {"1", "true", "yes", "y", "on"}:
+    if str(env.get("ATTENDANCE_DISABLE_PROXY", "")).strip().lower() in {"1", "true", "yes", "y", "on"}:
         return {}
     file_proxies = file_proxies if file_proxies is not None else read_proxy_config()
     proxies = dict(file_proxies)
@@ -213,7 +213,7 @@ def selectable_workdays(month: str, holidays: set[str], workday_overrides: set[s
 
 def fetch_china_holidays(year: int) -> tuple[list[dict], str]:
     try:
-        with open_url(url=f"https://timor.tech/api/holiday/year/{year}", timeout=8) as resp:
+        with open_url(f"https://timor.tech/api/holiday/year/{year}", timeout=8) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
         holidays = []
         for month_day, item in (payload.get("holiday") or {}).items():
@@ -226,11 +226,11 @@ def fetch_china_holidays(year: int) -> tuple[list[dict], str]:
         pass
 
     try:
-        with open_url(url=f"https://date.nager.at/api/v3/PublicHolidays/{year}/CN", timeout=8) as resp:
+        with open_url(f"https://date.nager.at/api/v3/PublicHolidays/{year}/CN", timeout=8) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
         holidays = sorted(
             [
-                {"date": item["date"], "name": normalize_holiday_name(item.get("localName") or item.get("name"), is_holiday=True), "isHoliday": True}
+                {"date": item["date"], "name": normalize_holiday_name(item.get("localName") or item.get("name"), True), "isHoliday": True}
                 for item in payload
                 if valid_date(item.get("date", ""))
             ],

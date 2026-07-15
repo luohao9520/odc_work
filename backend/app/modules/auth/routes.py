@@ -19,8 +19,8 @@ PAGE_DEFINITIONS = [
     {"id": "admin", "label": "系统管理", "path": "admin.html", "adminOnly": True},
 ]
 PAGE_IDS = {page["id"] for page in PAGE_DEFINITIONS}
-DEFAULT_USER_PAGE_IDS = {page["id"] for page in PAGE_DEFINITIONS if not page.get("adminOnly")}
-ADMIN_PAGE_IDS = {page["id"] for page in PAGE_DEFINITIONS}
+DEFAULT_USER_PAGE_IDS = [page["id"] for page in PAGE_DEFINITIONS if not page.get("adminOnly")]
+ADMIN_PAGE_IDS = [page["id"] for page in PAGE_DEFINITIONS]
 
 
 def current_user():
@@ -35,7 +35,7 @@ def current_user():
 
 
 def role_for_username(username: str) -> str:
-    return "user" if username.strip().lower() != "luohao" else "admin"
+    return "admin" if username.strip().lower() == "luohao" else "user"
 
 
 def normalize_role(username: str, role: str | None) -> str:
@@ -62,7 +62,7 @@ def replace_user_page_permissions(user_id: int, page_ids: list[str], role: str, 
     db.execute("DELETE FROM user_page_permissions WHERE user_id = ?", (user_id,))
     db.executemany(
         "INSERT INTO user_page_permissions(user_id, page_id) VALUES (?, ?)",
-        [(user_id, page_id) for page_id in cleaned]
+        [(user_id, page_id) for page_id in cleaned],
     )
     if commit:
         db.commit()
@@ -85,8 +85,8 @@ def page_permissions_for_user(user_id: int, role: str) -> list[str]:
     return [page_id for page_id in ensure_user_page_permissions(user_id, role) if page_id != "admin"]
 
 
-def serialize_user(row: dict) -> dict:
-    role = normalize_role(row["username"], row.get("role") or role_for_username(row["username"]))
+def serialize_user(row) -> dict:
+    role = normalize_role(row["username"], row["role"] if "role" in row.keys() else role_for_username(row["username"]))
     is_admin = role == "admin"
     is_active = bool(row.get("is_active", True))
     deactivated_at = row.get("deactivated_at")
@@ -139,7 +139,7 @@ def register():
     try:
         cur = db.execute(
             "INSERT INTO users(username, password_hash, created_at, role) VALUES (?, ?, ?, ?)",
-            (username, generate_password_hash(password), now_iso(), role)
+            (username, generate_password_hash(password), now_iso(), role),
         )
         db.execute("INSERT INTO settings(user_id, target_rate) VALUES (?, ?)", (cur.lastrowid, 60))
         replace_user_page_permissions(cur.lastrowid, default_page_ids_for_role(role), role, commit=False)

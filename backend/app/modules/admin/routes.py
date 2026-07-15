@@ -31,7 +31,7 @@ def _guard_user_mutation(target, *, deleting: bool = False, deactivating: bool =
     if actor and actor["id"] == target["id"] and (deleting or deactivating):
         return jsonify({"error": "不能删除或停用当前登录用户"}), 400
     if target["username"].strip().lower() == "luohao" and (deleting or deactivating):
-        return jsonify({"error": "不能删除或停用当前管理员 luohao"}), 400
+        return jsonify({"error": "不能删除或停用内置管理员 luohao"}), 400
     if target["role"] == "admin" and bool(target["is_active"]) and (deleting or deactivating) and _active_admin_count(exclude_user_id=target["id"]) <= 0:
         return jsonify({"error": "至少需要保留一个启用状态的管理员"}), 400
     return None
@@ -40,7 +40,7 @@ def _guard_user_mutation(target, *, deleting: bool = False, deactivating: bool =
 @admin_bp.get("/users")
 @admin_required
 def list_users():
-    rows = get_db().execute("SELECT id, username, role, created_at, is_active, deactivated_at FROM users ORDER BY username ASC").fetchall()
+    rows = get_db().execute("SELECT id, username, role, created_at, is_active, deactivated_at FROM users ORDER BY lower(username)").fetchall()
     users = []
     for row in rows:
         user = serialize_user(row)
@@ -58,7 +58,7 @@ def update_user_access(user_id: int):
     if not target:
         return jsonify({"error": "用户不存在"}), 404
 
-    requested_role = normalize_role(target["username"], payload.get("role"), target["role"])
+    requested_role = normalize_role(target["username"], payload.get("role", target["role"]))
     actor = current_user()
     if actor and actor["id"] == user_id and requested_role != "admin":
         return jsonify({"error": "不能取消自己的管理员角色"}), 400
@@ -94,7 +94,7 @@ def update_user_status(user_id: int):
     db = get_db()
     db.execute(
         "UPDATE users SET is_active = ?, deactivated_at = ? WHERE id = ?",
-        (1 if active else 0, now_iso() if not active else None, user_id)
+        (1 if active else 0, None if active else now_iso(), user_id),
     )
     db.commit()
     updated = _select_user(user_id)

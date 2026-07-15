@@ -84,8 +84,8 @@ def try_acquire_scheduler_lease(lease_seconds: int = DEFAULT_LEASE_SECONDS, now:
         return False
     db.execute(
         "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?)"
-        "ON CONFLICT (name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
-        (SCHEDULER_NAME, locked_until, now_text)
+        "ON CONFLICT(name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
+        (SCHEDULER_NAME, locked_until, now_text),
     )
     db.commit()
     return True
@@ -105,12 +105,12 @@ def _scheduler_loop(app: Flask, interval_seconds: int) -> None:
             with app.app_context():
                 if try_acquire_scheduler_lease(lease_seconds=max(DEFAULT_LEASE_SECONDS, interval_seconds - 5)):
                     results = run_due_seat_bookings()
-                    message = f"执行完成: {len(results)} 个任务"
+                    message = f"执行完成：{len(results)} 个任务"
                 else:
                     message = "其他进程持有调度锁，本轮跳过"
                 _state.update({"running": True, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": message})
         except Exception as exc:  # pragma: no cover - defensive guard for long-running service
-            _state.update({"running": False, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": f"调度异常: {exc}"})
+            _state.update({"running": False, "lastRunAt": datetime.now().replace(microsecond=0).isoformat(), "lastMessage": f"调度异常：{exc}"})
         time.sleep(interval_seconds)
 
 

@@ -57,7 +57,7 @@ class SeatBookingClient:
         )
         with self.opener.open(request, timeout=self.timeout) as response:
             text = response.read().decode("utf-8", "ignore")
-            return parse_platform_response(text)
+        return parse_platform_response(text)
 
     def _get(self, path: str) -> dict:
         request = urllib.request.Request(
@@ -67,11 +67,11 @@ class SeatBookingClient:
                 "Accept": "application/json,text/plain,*/*",
                 "X-Requested-With": "XMLHttpRequest",
                 "Referer": self._url("/Mobile/seat/index"),
-            }
+            },
         )
         with self.opener.open(request, timeout=self.timeout) as response:
             text = response.read().decode("utf-8", "ignore")
-            return parse_platform_response(text)
+        return parse_platform_response(text)
 
     def _post_json(self, path: str, payload: dict[str, Any]) -> dict:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -89,7 +89,7 @@ class SeatBookingClient:
         )
         with self.opener.open(request, timeout=self.timeout) as response:
             text = response.read().decode("utf-8", "ignore")
-            return parse_platform_response(text)
+        return parse_platform_response(text)
 
     def login(self, username: str, password: str) -> dict:
         if not username or not password:
@@ -97,7 +97,7 @@ class SeatBookingClient:
         payload = {
             "username": username,
             "password": password,
-            "zropenid": ""
+            "zropenid": "",
         }
         # The mobile login page posts this exact form to /Mobile/login/loginpost;
         # response {"code":1,"desc":"} means success.
@@ -110,13 +110,13 @@ class SeatBookingClient:
         return self._get(BOOK_LIST_PATH)
 
     def get_seat_list(self, booking_date: str) -> dict:
-        return self._post_json(SEAT_LIST_PATH, payload={"book_date": booking_date})
+        return self._post_json(SEAT_LIST_PATH, {"book_date": booking_date})
 
     def book_seat(self, booking_date: str, seat_id: str, seat_name: str = "") -> dict:
-        return self._post_json(BOOK_SEAT_PATH, payload={"book_date": booking_date, "seat_no": seat_id})
+        return self._post_json(BOOK_SEAT_PATH, {"book_date": booking_date, "seat_no": seat_id})
 
     def cancel_seat(self, booking_date: str) -> dict:
-        return self._post_json(CANCEL_SEAT_PATH, payload={"book_date": booking_date})
+        return self._post_json(CANCEL_SEAT_PATH, {"book_date": booking_date})
 
 
 def parse_platform_response(text: str) -> dict:
@@ -181,7 +181,7 @@ def extract_bookings(result: dict) -> list[dict]:
     conservative: a record is synced only when it contains a recognizable date.
     """
     date_keys = ("book_date", "bookDate", "bookingDate", "date", "day", "bookday", "bookDay", "book_time", "bookTime")
-    seat_keys = ("seat_no", "seatNo", "seatId", "seatId", "id", "value", "seat", "seatNoText")
+    seat_keys = ("seat_no", "seatNo","seat_id" , "seatId", "seatid", "id", "value", "seat", "seatNoText")
     seat_name_keys = ("seat_name", "seatName", "seatname", "name", "label", "seat", "seatNoText")
     status_keys = ("status", "state", "book_status", "bookStatus")
 
@@ -202,7 +202,7 @@ def extract_bookings(result: dict) -> list[dict]:
         if any(value.get(key) for key in date_keys):
             yield value
             return
-        for key in ("data", "rows", "list", "items", "records", "result", "results", "bookInfo", "bookInfo", "bookList", "bookList", "bookingList", "seatList"):
+        for key in ("data", "rows", "list", "items", "records", "result", "results", "bookinfo", "bookInfo", "booklist", "bookList", "bookingList", "seatlist"):
             if key in value:
                 yield from walk(value[key])
 
@@ -212,7 +212,7 @@ def extract_bookings(result: dict) -> list[dict]:
         booking_date = normalize_date(next((item.get(key) for key in date_keys if item.get(key)), ""))
         if not booking_date:
             continue
-        seat_id = str(next((item.get(key) for key in seat_keys if item.get(key)), "").strip())
+        seat_id = str(next((item.get(key) for key in seat_keys if item.get(key)), "")).strip()
         seat_name = str(next((item.get(key) for key in seat_name_keys if item.get(key)), seat_id)).strip() or seat_id
         status = str(next((item.get(key) for key in status_keys if item.get(key)), "success")).strip().lower() or "success"
         key = (booking_date, seat_id, seat_name)

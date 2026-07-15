@@ -19,12 +19,12 @@ backend/app/
 
 - New backend code should import from `backend.app.*`.
 - Do not add new backend code outside `backend/app`.
-- Keep public HTTP routes stable: `/api/*`, `/pages/*`, `/static/*`, `/manifest.webmanifest`, and `/service-worker.js`.
+- Keep public HTTP routes stable: `/api/*`, `/*.html`, `/static/*`, `/manifest.webmanifest`, and `/service-worker.js`.
 
 Local checks
 
 ```powershell
-Set-Location "C:\Users\45490415\Data\Code\Other\OPC"
-python -m pip install -q .\backend .\tests .\scripts .\run.py
+Set-Location "C:\Users\45490415\Data\Code\Other\ODC"
+python -m compileall -q .\backend .\tests .\scripts .\run.py
 python -m unittest tests.test_backend tests.test_init_db tests.test_run_config
 ```

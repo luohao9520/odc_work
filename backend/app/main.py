@@ -18,8 +18,8 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     app = Flask(
         __name__,
-        static_folder=STATIC_DIR,
-        static_url_path="/static/",
+        static_folder=str(STATIC_DIR),
+        static_url_path="/static",
     )
     app.config.update(
         SECRET_KEY=SECRET_KEY,
@@ -51,14 +51,14 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.route("/service-worker.js")
     def service_worker():
-        response = send_from_directory(STATIC_DIR, "service_worker.js")
+        response = send_from_directory(STATIC_DIR, "service-worker.js")
         response.mimetype = "application/javascript"
         response.headers["Cache-Control"] = "no-cache"
         return response
 
     @app.route("/<path:filename>")
     def pages(filename: str):
-        allowed = {"index.html", "holidays.html", "seat-booking.html", "admin.html", "login.html", "api-doc.html", "offline.html"}
+        allowed = {"index.html", "holidays.html", "seat-booking.html", "admin.html", "login.html", "api-docs.html", "offline.html"}
         if filename not in allowed:
             return jsonify({"error": "not_found"}), 404
         return send_from_directory(TEMPLATE_DIR, filename)
@@ -67,3 +67,4 @@ def create_app(test_config: dict | None = None) -> Flask:
     start_data_cleanup_scheduler(app)
 
     return app
+

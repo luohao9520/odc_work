@@ -35,13 +35,13 @@ def read_attendance_entries_for_month(user_id: int, month: str) -> dict:
     """
     rows = get_db().execute(
         "SELECT work_date, status, source FROM attendance WHERE user_id = ? AND work_date LIKE ?",
-        (user_id, f"{month}-%")
+        (user_id, f"{month}-%"),
     ).fetchall()
     return {row["work_date"]: {"status": row["status"], "source": row["source"]} for row in rows}
 
 
 def next_month_value(month: str) -> str:
-    year, month_number = [int(part) for part in month.split('-')]
+    year, month_number = [int(part) for part in month.split("-")]
     if month_number == 12:
         return f"{year + 1}-01"
     return f"{year}-{month_number + 1:02d}"
@@ -55,8 +55,8 @@ def read_manual_attendance_history(user_id: int, through_month: str) -> list[dic
     不能代表用户真实偏好。
     """
     rows = get_db().execute(
-        "SELECT work_date, status FROM attendance WHERE user_id = ? AND source = ? AND work_date < ? AND work_date > ? ORDER BY work_date DESC LIMIT 240",
-        (user_id, SOURCE_MANUAL, next_month_value(through_month), "0001-01-01")
+        "SELECT work_date, status FROM attendance WHERE user_id = ? AND source = ? AND work_date < ? ORDER BY work_date DESC LIMIT 240",
+        (user_id, SOURCE_MANUAL, f"{next_month_value(through_month)}-01")
     ).fetchall()
     return [{"date": row["work_date"], "status": row["status"]} for row in rows]
 
@@ -90,31 +90,31 @@ def filter_adjustable_dates(dates: list[str], include_past: bool) -> list[str]:
 @attendance_bp.get("/settings")
 @login_required
 def get_settings():
-    return jsonify(read_settings(session['user_id']))
+    return jsonify(read_settings(session["user_id"]))
 
 
 @attendance_bp.put("/settings")
 @login_required
 def update_settings():
     payload = request.get_json(silent=True) or {}
-    target_rate = max(0, min(100, int(payload.get('targetRate', 60))))
+    target_rate = max(0, min(100, int(payload.get("targetRate", 60))))
     db = get_db()
     db.execute(
-        "INSERT INTO settings(user_id, target_rate) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET target_rate = excluded.target_rate",
+        "INSERT INTO settings(user_id, target_rate) VALUES (?, ?) "
         "ON CONFLICT(user_id) DO UPDATE SET target_rate = excluded.target_rate",
-        (session['user_id'], target_rate)
+        (session["user_id"], target_rate),
     )
     db.commit()
-    return jsonify(read_settings(session['user_id']))
+    return jsonify(read_settings(session["user_id"]))
 
 
 @attendance_bp.get("/attendance")
 @login_required
 def get_attendance():
-    month = request.args.get('month', "")
+    month = request.args.get("month", "")
     if not valid_month(month):
         return jsonify({"error": "月份格式应为 YYYY-MM"}), 400
-    user_id = session['user_id']
+    user_id = session["user_id"]
     year = int(month[:4])
     ensure_holidays_for_user(user_id, year)
     selections = read_attendance_for_month(user_id, month)
@@ -129,8 +129,8 @@ def get_attendance():
     summary = calculate_attendance_summary(
         month,
         selections,
-        [item["date"] for item in holidays],
-        [item["date"] for item in workdays],
+        {item["date"] for item in holidays},
+        {item["date"] for item in workdays},
         settings["targetRate"],
         today,
     )
@@ -140,9 +140,9 @@ def get_attendance():
             "settings": settings,
             "selections": selections,
             "summary": summary,
-            "holidays": [h["date"] for h in holidays if h["date"].startswith(month)],
-            "workdays": [w["date"] for w in workdays if w["date"].startswith(month)],
-            "dayOverrides": [o for o in overrides if o["date"].startswith(month)],
+            "holidays": [h for h in holidays if h["date"].startswith(month)],
+            "workdays": [w for w in workdays if w["date"].startswith(month)],
+            "dayOverrides": [item for item in overrides if item["date"].startswith(month)],
             "holidayCountForYear": len(holidays),
             "workdayCountForYear": len(workdays),
             "smartSchedule": {
@@ -158,20 +158,20 @@ def get_attendance():
 @login_required
 def save_attendance():
     payload = request.get_json(silent=True) or {}
-    iso_date = str(payload.get("date", "")).strip()
+    iso_date = str(payload.get("date", ""))
     status = payload.get("status")
     if not valid_date(iso_date):
-        return jsonify({"error": "日期格式不正确"}), 400
+        return jsonify({"error": "日期格式应为 YYYY-MM-DD"}), 400
     if status is not None and status not in VALID_STATUSES:
-        return jsonify({"error": "状态错误"}), 400
+        return jsonify({"error": "未知登记状态"}), 400
     db = get_db()
     if status is None:
         db.execute("DELETE FROM attendance WHERE user_id = ? AND work_date = ?", (session["user_id"], iso_date))
     else:
         db.execute(
-            "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?)"
-            "ON CONFLICT(user_id) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source",
-            (session["user_id"], iso_date, status, now_iso(), SOURCE_MANUAL)
+            "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
+            "ON CONFLICT(user_id,work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source",
+            (session["user_id"], iso_date, status, now_iso(), SOURCE_MANUAL),
         )
     db.commit()
     return jsonify({"ok": True})
@@ -181,19 +181,19 @@ def save_attendance():
 @login_required
 def bulk_attendance():
     payload = request.get_json(silent=True) or {}
-    month = str(payload.get("month", "")).strip()
+    month = str(payload.get("month", ""))
     status = payload.get("status")
     include_past = parse_include_past(payload)
     if not valid_month(month):
-        return jsonify({"error": "月份格式不正确"}), 400
+        return jsonify({"error": "月份格式应为 YYYY-MM"}), 400
     if status is not None and status not in VALID_STATUSES:
-        return jsonify({"error": "无效状态"}), 400
+        return jsonify({"error": "未知登记状态"}), 400
 
     user_id = session["user_id"]
     year = int(month[:4])
     ensure_holidays_for_user(user_id, year)
-    holidays = [item["date"] for item in read_holidays_for_year(user_id, year)]
-    workday_overrides = [item["date"] for item in read_workday_overrides_for_year(user_id, year)]
+    holidays = {item["date"] for item in read_holidays_for_year(user_id, year)}
+    workday_overrides = {item["date"] for item in read_workday_overrides_for_year(user_id, year)}
     db = get_db()
     adjustable_dates = filter_adjustable_dates(selectable_workdays(month, holidays, workday_overrides), include_past)
     for iso_date in adjustable_dates:
@@ -203,10 +203,10 @@ def bulk_attendance():
             db.execute("DELETE FROM attendance WHERE user_id = ? AND work_date = ?", (user_id, iso_date))
         else:
             db.execute(
-                "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?)"
-                "ON CONFLICT(user_id,work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source"
+                "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT(user_id, work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source "
                 "WHERE attendance.source != ?",
-                (user_id, iso_date, status, now_iso(), SOURCE_BULK, SOURCE_MANUAL)
+                (user_id, iso_date, status, now_iso(), SOURCE_BULK, SOURCE_MANUAL),
             )
             # 上面的 SQL WHERE 子句就是手动选择保护：生成记录可以覆盖其他生成记录
             # 但永远不能覆盖手动记录
@@ -218,12 +218,12 @@ def bulk_attendance():
 @login_required
 def smart_schedule():
     payload = request.get_json(silent=True) or {}
-    month = str(payload.get("month", "")).strip()
-    strategy = str(payload.get("strategy", "weekly-balanced")).strip()
+    month = str(payload.get("month", ""))
+    strategy = str(payload.get("strategy", "weekly-balanced"))
     include_past = parse_include_past(payload)
     if not valid_month(month):
         return jsonify({"error": "月份格式应为 YYYY-MM"}), 400
-    if strategy not in SMART_SCHEDULE_STRATEGIES:
+    if strategy not in ACCEPTED_SMART_SCHEDULE_STRATEGIES:
         return jsonify({"error": "未知智能排班方式"}), 400
 
     user_id = session["user_id"]
@@ -245,10 +245,10 @@ def smart_schedule():
     db = get_db()
     for iso_date, status in plan["plannedSelections"].items():
             db.execute(
-                "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?)"
-                "ON CONFLICT(user_id,work_date) DO UPDATE SET status = EXCLUDED.status, updated_at = EXCLUDED.updated_at, source = EXCLUDED.source"
+                "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT(user_id, work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source "
                 "WHERE attendance.source != ?",
-                (user_id, iso_date, status, now_iso(), SOURCE_SMART, SOURCE_MANUAL)
+                (user_id, iso_date, status, now_iso(), SOURCE_SMART, SOURCE_MANUAL),
             )
     db.commit()
 
@@ -258,12 +258,12 @@ def smart_schedule():
         "ok": True,
         "selections": updated,
         "summary": summary,
-        "weeklyPlan": plan.get("weeklyPlan"),
-        "strategy": plan.get("strategy"),
-        "plannedSelections": plan.get("plannedSelections"),
-        "plannedStatus": plan.get("plannedStatus"),
-        "recommendations": plan.get("recommendations"),
-        "recommendedDates": plan.get("recommendedDates"),
+        "weeklyPlan": plan["weeklyPlan"],
+        "strategy": plan["strategy"],
+        "strategyLabel": plan["strategyLabel"],
+        "requestedStrategy": plan["requestedStrategy"],
+        "recommendation": plan["recommendation"],
+        "recommendedDates": plan["recommendedDates"],
         "adjustedDates": sorted(adjustable_dates),
         "includePast": include_past
     })

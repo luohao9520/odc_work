@@ -4,12 +4,12 @@ import sqlite3
 
 from flask import current_app, g
 
-# `attendance.source`  记录一条登记由谁产生：
+# `attendance.source` 记录一条登记由谁产生：
 # - manual：用户点击日期卡片产生，不能被智能/批量设置覆盖。
-# - bulk：由“工作日全设为公司”产生，后续可以重新生成
-# - smart： 由智能排班产生，后续可以重新生成。
-# 使用简单文本列可以避免额外的元数据表，同时仍能存在 SQL upsert 中通过
-# `WHERE source != 'manual'` 保护手动选择
+# - bulk：由“工作日全设为公司”产生，后续可以重新生成。
+# - smart：由智能排班产生，后续可以重新生成。
+# 使用简单文本列可以避免额外的元数据表，同时仍能在 SQL upsert 中通过
+# `WHERE source != 'manual'` 保护手动选择。
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,10 +153,10 @@ def init_db() -> None:
     if "advance_days" not in seat_booking_columns:
         db.execute("ALTER TABLE seat_booking_settings ADD COLUMN advance_days INTEGER NOT NULL DEFAULT 0")
     db.execute(
-        "INSERT OR IGNORE INTO data_cleanup_settings "
-        "(id, scheduled_enabled, attendance_retention_months, overtime_retention_months, "
-        "seat_booking_plan_retention_months, seat_booking_run_retention_months, updated_at) "
-        "VALUES (1, 0, 12, 12, 6, 3, datetime('now'))"
+        "INSERT OR IGNORE INTO data_cleanup_settings("
+        "id, scheduled_enabled, attendance_retention_months, overtime_retention_months, "
+        "seat_booking_plan_retention_months, seat_booking_run_retention_months, updated_at"
+        ") VALUES (1, 0, 12, 12, 6, 3, datetime('now'))"
     )
     db.commit()
 

@@ -22,7 +22,7 @@ def read_day_overrides_for_year(user_id: int, year: int) -> list[dict]:
     rows = get_db().execute(
         "SELECT holiday_date, name, is_holiday, source, updated_at FROM holidays "
         "WHERE user_id = ? AND holiday_date LIKE ? ORDER BY holiday_date",
-        (user_id, f"{year}-%")
+        (user_id, f"{year}-%"),
     ).fetchall()
     return [
         {
@@ -39,7 +39,7 @@ def read_day_overrides_for_year(user_id: int, year: int) -> list[dict]:
 def read_holiday_sync(user_id: int, year: int) -> dict | None:
     row = get_db().execute(
         "SELECT source, updated_at FROM holiday_syncs WHERE user_id = ? AND year = ?",
-        (user_id, year)
+        (user_id, year),
     ).fetchone()
     if not row:
         return None
@@ -49,9 +49,9 @@ def read_holiday_sync(user_id: int, year: int) -> dict | None:
 def ensure_holidays_for_user(user_id: int, year: int) -> None:
     count = get_db().execute(
         "SELECT COUNT(*) AS c FROM holidays WHERE user_id = ? AND holiday_date LIKE ?",
-        (user_id, f"{year}-%")
-    ).fetchone()
-    if count and count["c"] > 0:
+        (user_id, f"{year}-%"),
+    ).fetchone()["c"]
+    if count:
         return
     holidays, source = fetch_china_holidays(year)
     replace_holidays_for_year(user_id, year, holidays, source)
@@ -66,12 +66,12 @@ def replace_holidays_for_year(user_id: int, year: int, holidays: list[dict], sou
             is_holiday = bool(item.get("isHoliday", True))
             db.execute(
                 "INSERT INTO holidays(user_id, holiday_date, name, is_holiday, source, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (user_id, iso_date, item.get("name") or ("节假日" if is_holiday else "补班"), 1 if is_holiday else 0, source, now_iso())
+                (user_id, iso_date, item.get("name") or ("节假日" if is_holiday else "补班"), int(is_holiday), source, now_iso())
             )
     db.execute(
         "INSERT INTO holiday_syncs(user_id, year, source, updated_at) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(user_id, year) DO UPDATE SET source = excluded.source, updated_at = excluded.updated_at",
-        (user_id, year, source, now_iso())
+        (user_id, year, source, now_iso()),
     )
     db.commit()
 
@@ -80,18 +80,18 @@ def copy_holidays_between_users(source_user_id: int, target_user_id: int, year: 
     db = get_db()
     rows = db.execute(
         "SELECT holiday_date, name, is_holiday FROM holidays WHERE user_id = ? AND holiday_date LIKE ? ORDER BY holiday_date",
-        (source_user_id, f"{year}-%")
+        (source_user_id, f"{year}-%"),
     ).fetchall()
     db.execute("DELETE FROM holidays WHERE user_id = ? AND holiday_date LIKE ?", (target_user_id, f"{year}-%"))
     for row in rows:
         db.execute(
             "INSERT INTO holidays(user_id, holiday_date, name, is_holiday, source, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (target_user_id, row["holiday_date"], row["name"], row["is_holiday"], source_label, now_iso())
+            (target_user_id, row["holiday_date"], row["name"], row["is_holiday"], source_label, now_iso()),
         )
     db.execute(
         "INSERT INTO holiday_syncs(user_id, year, source, updated_at) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(user_id, year) DO UPDATE SET source = excluded.source, updated_at = excluded.updated_at",
-        (target_user_id, year, source_label, now_iso())
+        (target_user_id, year, source_label, now_iso()),
     )
     db.commit()
     return len(rows)
@@ -106,7 +106,7 @@ def get_holiday_source_users():
         "SELECT u.id, u.username, COUNT(h.holiday_date) AS override_count "
         "FROM users u LEFT JOIN holidays h ON h.user_id = u.id AND h.holiday_date LIKE ? "
         "WHERE u.id <> ? AND u.is_active = 1 GROUP BY u.id, u.username ORDER BY u.username",
-        (f"{year}-%", current_user_id)
+        (f"{year}-%", current_user_id),
     ).fetchall()
     return jsonify(
         {
@@ -114,7 +114,7 @@ def get_holiday_source_users():
             "users": [
                 {"id": row["id"], "username": row["username"], "overrideCount": row["override_count"]}
                 for row in rows
-            ]
+            ],
         }
     )
 
@@ -160,7 +160,7 @@ def get_holidays():
     workdays = read_workday_overrides_for_year(user_id, year)
     overrides = read_day_overrides_for_year(user_id, year)
     meta = read_holiday_sync(user_id, year)
-    return jsonify({"year": year, "holidays": holidays, "workdays": workdays, "dayOverrides": overrides, "calendar": build_year_calendar(year, overrides), "meta": meta, })
+    return jsonify({"year": year, "holidays": holidays, "workdays": workdays, "dayOverrides": overrides, "calendar": build_year_calendar(year, overrides), "meta": meta})
 
 
 @holidays_bp.post("/holidays/sync")
@@ -189,14 +189,14 @@ def sync_holidays():
 @login_required
 def patch_holiday():
     payload = request.get_json(silent=True) or {}
-    iso_date = str(payload.get("date", "")).strip()
+    iso_date = str(payload.get("date", ""))
     if not valid_date(iso_date):
         return jsonify({"error": "日期格式应为 YYYY-MM-DD"}), 400
     day_type = str(payload.get("dayType") or ("holiday" if payload.get("isHoliday") else "normal"))
     if day_type not in {"normal", "holiday", "workday"}:
         return jsonify({"error": "未知日期类型"}), 400
     is_holiday = day_type == "holiday"
-    name = str(payload.get("name", "")).strip() or ("节假日" if is_holiday else "上班" if day_type == "workday" else "")
+    name = str(payload.get("name", "")).strip() or ("节假日" if is_holiday else "补班" if day_type == "workday" else "")
     db = get_db()
     if day_type == "normal":
         db.execute("DELETE FROM holidays WHERE user_id = ? AND holiday_date = ?", (session["user_id"], iso_date))
@@ -204,12 +204,12 @@ def patch_holiday():
         db.execute(
             "INSERT INTO holidays(user_id, holiday_date, name, is_holiday, source, updated_at) VALUES (?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(user_id, holiday_date) DO UPDATE SET name = excluded.name, is_holiday = excluded.is_holiday, source = excluded.source, updated_at = excluded.updated_at",
-            (session["user_id"], iso_date, name, 1 if is_holiday else 0, '手动维护', now_iso())
+            (session["user_id"], iso_date, name, int(is_holiday), "手动维护", now_iso()),
         )
     db.execute(
         "INSERT INTO holiday_syncs(user_id, year, source, updated_at) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(user_id, year) DO UPDATE SET source = excluded.source, updated_at = excluded.updated_at",
-        (session["user_id"], int(iso_date[:4]), "手动维护", now_iso())
+        (session["user_id"], int(iso_date[:4]), "手动维护", now_iso()),
     )
     db.commit()
     holidays = read_holidays_for_year(session["user_id"], int(iso_date[:4]))
@@ -221,6 +221,6 @@ def patch_holiday():
             "holidays": holidays,
             "workdays": workdays,
             "dayOverrides": overrides,
-            "calendar": build_year_calendar(int(iso_date[:4]), overrides),
+            "calendar": build_year_calendar(int(iso_date[:4]), overrides)
         }
     )
