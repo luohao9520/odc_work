@@ -1,197 +1,211 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>月度出勤率计算器</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#176b4f" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="出勤计算器" />
-  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
-  <link rel="stylesheet" href="/static/css/style.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>月度出勤率计算器</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <meta name="theme-color" content="#176b4f"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="出勤计算器"/>
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg"/>
+    <link rel="stylesheet" href="/static/css/styles.css"/>
 </head>
 <body data-page="attendance">
+<a class="skip-link" href="#attendanceWorkspace">跳到出勤日历</a>
 <main class="shell">
-  <nav class="top-nav" aria-label="页面导航">
-    <a class="nav-link active" href="./index.html">出勤登记</a>
-    <a class="nav-link" href="./holidays.html">节假日调整</a>
-    <a class="nav-link" href="./seat-booking.html">座位预约</a>
-    <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
-    <a class="nav-link" href="./api-docs.html">接口测试</a>
-    <span id="userBadge" class="nav-user">未登录</span>
-    <button id="logoutBtn" class="nav-logout" type="button">退出</button>
-  </nav>
+    <nav class="top-nav" aria-label="页面导航">
+        <a class="nav-link active" href="./index.html">出勤登记</a>
+        <a class="nav-link" href="./holidays.html">节假日调整</a>
+        <a class="nav-link" href="./seat-booking.html">座位预约</a>
+        <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
+        <a class="nav-link" href="./api-docs.html">接口测试</a>
+        <span id="userBadge" class="nav-user">未登录</span>
+        <button id="logoutBtn" class="nav-logout" type="button">退出</button>
+    </nav>
 
-  <section class="hero" aria-labelledby="page-title">
-    <div class="hero-copy">
-      <p class="eyebrow">Office Attendance Planner</p>
-      <h1 id="page-title">月度出勤率计算器</h1>
-      <p class="lede">统计每月实际工作日，选择“公司打卡 / 居家办公 / 请假”，自动判断当天是否达到出勤率；请假按休息日处理，不计入分母，也不计入公司打卡分子。登记数据会按登录用户保存。</p>
-    </div>
-    <div class="hero-badge" aria-label="达标线">
-      <span>达标线</span>
-      <strong>60</strong>
-    </div>
-    <form id="targetRateForm" class="target-rate-form">
-      <label class="target-rate-control" for="targetRateInput">
-        <span>达标线</span>
-        <input id="targetRateInput" name="targetRate" type="number" min="0" max="100" step="1" inputmode="numeric" autocomplete="off" value="60" />
-      </label>
-      <button id="saveTargetRateBtn" type="submit">保存</button>
-    </form>
-    <small id="targetRateStatus" aria-live="polite">同步目标出勤率，向上取整</small>
-  </section>
-
-  <section class="controls panel controls--attendance" aria-label="月份与节假日设置">
-    <div class="field compact rule-toggle-field">
-      <label id="showRulesLabel" for="showRulesToggle">计算规则</label>
-      <label class="switch-row">
-        <input id="showRulesToggle" type="checkbox" role="switch" aria-labelledby="showRulesLabel" />
-        <span class="switch-slider" aria-hidden="true"></span>
-        <span id="showRulesText">隐藏</span>
-      </label>
-    </div>
-    <div class="field field--wide holiday-source-card">
-      <label>年度节假日</label>
-      <div id="holidaySummary" class="hint">正在加载节假日数据...</div>
-      <p class="hint">如果节假日不同，请到“节假日调整”页面同步修改。</p>
-    </div>
-    <a class="ghost-button button-link action-link" href="/holidays.html"><span class="button-link__icon" aria-hidden="true">←</span><span>打开节假日调整</span></a>
-  </section>
-
-  <section class="summary-grid" aria-live="polite">
-    <article class="metric metric--status" id="statusCard">
-      <span>当前状态</span>
-      <strong id="statusText">--</strong>
-      <small id="statusDetail">请选择月份</small>
-    </article>
-    <article class="metric">
-      <span>公司打卡天数</span>
-      <strong id="requiredDays">0</strong>
-      <small>工作日 × 目标比例，向上取整</small>
-    </article>
-    <article class="metric">
-      <span>已办公打卡天数</span>
-      <strong id="officeDays">0</strong>
-      <small id="remainingDays">还需 0 天</small>
-    </article>
-    <article class="metric">
-      <span>月度出勤率</span>
-      <strong id="attendanceRate">0%</strong>
-      <small id="denominatorText">分母 0 天</small>
-    </article>
-    <article class="metric">
-      <span>截至目前出勤率</span>
-      <strong id="attendanceRateToToday">0%</strong>
-      <small id="denominatorToTodayText">今日前分母 0 天</small>
-    </article>
-  </section>
-
-  <section id="attendanceWorkspace" class="workspace rules-hidden">
-    <section class="panel calendar-panel" aria-labelledby="calendar-title">
-      <div class="section-title">
-        <p class="eyebrow">Monthly Calendar</p>
-        <h2 id="calendar-title">月度日历</h2>
-      </div>
-      <div class="bulk-actions" aria-label="批量操作">
-        <button type="button" data-bulk="office">工作日全设为公出</button>
-        <label class="smart-strategy-field" for="smartStrategySelect">
-          <span class="label">智能推荐</span>
-          <select id="smartStrategySelect" aria-describedby="smartStrategyHint">
-            <option value="recommended">智能推荐</option>
-            <option value="prefer-mon-tue-wed">周一至三优先</option>
-            <option value="prefer-tue-thu">周二周四优先</option>
-            <option value="prefer-mon-wed-fri">周一三五优先</option>
-            <option value="prefer-mon-tue-wed-fri">周一至五分散</option>
-          </select>
-        </label>
-        <button class="compact-check" title="默认只调整当天及之后，勾选可覆盖整月的手动选择日期。">
-          <input id="resetDaysToggle" type="checkbox">
-          <span>覆盖整月日期</span>
-        </button>
-        <button id="smartScheduleBtn" type="button">智能排班</button>
-        <button class="danger-button" type="button" data-bulk="clear">清空本月排班</button>
-        <small id="smartStrategyHint" class="smart-strategy-hint">智能推荐会根据历史手动选择项预测。</small>
-      </div>
-      <div class="weekday-row" aria-hidden="true">
-        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
-      </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
+    <section class="hero" aria-labelledby="page-title">
+        <div class="hero__copy">
+            <p class="eyebrow">Office Attendance Planner</p>
+            <h1 id="page-title">月度出勤率计算器</h1>
+            <p class="lede">按月列出工作日，选择“公司打卡 / 居家办公 / 请假”，自动判断当天是否达到出勤率；请假按休息日处理，不计入分母，也不计入公司打卡分子。登记数据会按登录用户保存。</p>
+        </div>
+        <div class="hero__badge" aria-label="达标规则">
+            <span>达标线</span>
+            <form id="targetRateForm" class="target-rate-form">
+                <label class="target-rate-control" for="targetRateInput">
+                    <input id="targetRateInput" name="targetRate" type="number" min="0" max="100" step="1" inputmode="numeric" autocomplete="off" value="60"/>
+                    <span>%</span>
+                </label>
+                <button id="saveTargetRateBtn" type="submit">保存</button>
+            </form>
+            <small id="targetRateStatus" aria-live="polite">同步目标出勤率 · 向上取整</small>
+        </div>
     </section>
 
-    <aside id="rulePanel" class="panel explainer hidden" aria-labelledby="rules-title">
-      <p class="eyebrow">Rule Book</p>
-      <h2 id="rules-title">计算规则</h2>
-      <ul>
-        <li>分母：应出勤工作日 = 普通工作日 - 调休节假日 + 周末补班日 - 请假日。</li>
-        <li>公司打卡分：居家办公、未选择的均按工作日属于分母；请假按休息日处理，不计入分母。</li>
-        <li>分子：公司打卡天数 = 请假和居家办公不计入分子。</li>
-        <li>每月达标线 = <code>需公司打卡天数 = 需应出勤打卡工作日 * 达标线</code>。</li>
-        <li>截至目前达标线 = <code>需截至目前公司打卡天数 = 需月初至当日应出勤工作日 * 达标线</code>。</li>
-        <li>月度公司打卡天数 = <code>当前日（应出勤工作日 - 请假出勤天数）</code></li>
-      </ul>
-      <div class="legend" aria-label="状态图例">
-        <span><i class="got-office"></i>公司打卡</span>
-        <span><i class="got-home"></i>居家办公</span>
-        <span><i class="got-leave"></i>请假</span>
-        <span><i class="got-locked"></i>已锁定</span>
-        <span><i class="got-holiday"></i>休息日</span>
-      </div>
-      <div class="formula" id="formulaText">--</div>
-    </aside>
-  </section>
+    <section class="controls panel controls--attendance" aria-label="月份与节假日设置">
+        <div class="field">
+            <label for="attendanceYearSelect">选择月份</label>
+            <div class="date-selectors month-picker">
+                <select id="attendanceYearSelect" aria-label="选择年份"></select>
+                <select id="attendanceMonthSelect" aria-label="选择月份"></select>
+            </div>
+        </div>
+        <div class="field compact rule-toggle-field">
+            <label id="showRulesLabel" for="showRulesToggle">计算规则</label>
+            <label class="switch-row">
+                <input id="showRulesToggle" type="checkbox" role="switch" aria-labelledby="showRulesLabel"/>
+                <span class="switch-slider" aria-hidden="true"></span>
+                <span id="showRulesText">隐藏</span>
+            </label>
+        </div>
+        <div class="field field--wide holiday-source-card">
+            <label>年度节假日</label>
+            <p id="holidaySummary" class="hint">正在加载节假日数据…</p>
+            <p class="hint">如公司日历不同，请到“节假日调整”页面同步或修改。</p>
+        </div>
+        <a class="ghost-button button-link action-link" href="./holidays.html"><span class="button-link__icon" aria-hidden="true">↗</span><span>打开节假日调整</span></a>
+    </section>
+
+    <section class="summary-grid" aria-live="polite">
+        <article class="metric metric--status" id="statusCard">
+            <span>达标状态</span>
+            <strong id="statusText">-</strong>
+            <small id="statusDetail">请选择月份</small>
+        </article>
+        <article class="metric">
+            <span>需公司打卡</span>
+            <strong id="requiredDays">0</strong>
+            <small>工作日 × 目标比例，向上取整</small>
+        </article>
+        <article class="metric">
+            <span>已公司打卡</span>
+            <strong id="officeDays">0</strong>
+            <small id="remainingDays">还需 0 天</small>
+        </article>
+        <article class="metric">
+            <span>整月出勤率</span>
+            <strong id="attendanceRate">0%</strong>
+            <small id="denominatorText">分母 0 天</small>
+        </article>
+        <article class="metric">
+            <span>截至今日出勤率</span>
+            <strong id="attendanceRateToToday">0%</strong>
+            <small id="denominatorToTodayText">今日前分母 0 天</small>
+        </article>
+    </section>
+
+    <section id="attendanceWorkspace" class="workspace rules-hidden">
+        <section class="panel calendar-panel" aria-labelledby="calendar-title">
+            <div class="section-title">
+                <div>
+                    <p class="eyebrow">Monthly Calendar</p>
+                    <h2 id="calendar-title">当前日期</h2>
+                </div>
+                <div class="bulk-actions" aria-label="批量操作">
+                    <button type="button" data-bulk="office">工作日全设为公司</button>
+                    <label class="smart-strategy-field" for="smartStrategySelect">
+                        <span class="label">排班方式</span>
+                        <select id="smartStrategySelect" aria-describedby="smartStrategyHint">
+                            <option value="recommended">智能推荐</option>
+                            <option value="prefer-mon-tue-wed">周一二三优先</option>
+                            <option value="prefer-tue-thu">周二三四优先</option>
+                            <option value="prefer-mon-wed-fri">周一三五优先</option>
+                            <option value="prefer-mon-tue-wed-fri">周一三五分散</option>
+                        </select>
+                    </label>
+                    <label class="compact-check" title="默认只调整明天及之后，勾选可重排整个月的非手动选择日期。">
+                        <input id="includePasToggle" type="checkbox"/>
+                        <span>包含过去日期</span>
+                    </label>
+                    <button id="smartScheduleBtn" type="button">智能排班</button>
+                    <button class="danger-button" type="button" data-bulk="clear">清空本月选择</button>
+                    <small id="smartStrategyHint" class="smart-strategy-hint">智能推荐会根据历史手动选择推测偏好。</small>
+                </div>
+            </div>
+            <div class="weekday-row" aria-hidden="true">
+                <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
+        <aside id="rulePanel" class="panel explainer hidden" aria-labelledby="rule-title">
+            <p class="eyebrow">Rule Book</p>
+            <h2 id="rule-title">计算规则</h2>
+            <ol>
+                <li>分母 = 应统计工作日 = 普通工作日 - 调休放假日 + 周末补班日 - 请假日。</li>
+                <li>公司打卡、居家办公、未选择的可统计工作日属于分母；请假按休息日处理，不计入分母。</li>
+                <li>分子 = 公司打卡天数；请假和居家办公不计入分子。</li>
+                <li>整月出勤率 = <code>整月公司打卡天数 ÷ 整月应统计工作日</code>。</li>
+                <li>截至今日出勤率 = <code>截至今日公司打卡天数 ÷ 截至今日应统计工作日</code>。</li>
+                <li>最低公司打卡天数 = <code>当cell(应统计工作日 × 目标出勤率)</code></li>
+            </ol>
+            <div class="legend" aria-label="状态图例">
+                <span><i class="dot office"></i>公司打卡</span>
+                <span><i class="dot home"></i>居家办公</span>
+                <span><i class="dot leave"></i>请假</span>
+                <span><i class="dot holiday"></i>周末/节假日</span>
+            </div>
+            <div class="formula" id="formulaText">-</div>
+        </aside>
+    </section>
 </main>
 
 <button id="guideFab" class="guide-fab" type="button" aria-expanded="false" aria-controls="guidePanel" aria-label="打开系统使用指南">?</button>
 <section id="guidePanel" class="guide-panel hidden" role="dialog" aria-modal="false" aria-labelledby="guideTitle">
-  <div class="guide-panel-head">
-    <p class="eyebrow">Quick Guide</p>
-    <h2 id="guideTitle">系统使用指南</h2>
-    <button id="closeGuideBtn" type="button" aria-label="关闭系统使用指南">✕</button>
-  </div>
-  <ol class="guide-list">
-    <li><strong>目标达标线</strong>：直接在页面顶部修改目标保留，保存后自动同步所有月份计算。</li>
-    <li><strong>手动排班</strong>：在月度日历中点击日期会切换“是否办公”并锁定该天，办公日默认不排班，遇休息日自动调整。</li>
-    <li><strong>智能排班</strong>：勾选“覆盖整月日期”自动将本月全设为办公日，再检查空闲月历并手动调整。</li>
-    <li><strong>智能推荐排班</strong>：默认只调整今天及之后，今天在日历中手动确认，勾选“覆盖整月日期”会自动整月保持规则。</li>
-    <li><strong>节假日切换</strong>：节假日同步和公休日调整，请在“节假日调整”页面处理。</li>
-  </ol>
+    <div class="guide-panel__head">
+        <div>
+            <p class="eyebrow">Quick Guide</p>
+            <h2 id="guideTitle">系统使用指南</h2>
+        </div>
+        <button id="closeGuideBtn" type="button" aria-label="关闭系统使用指南">✕</button>
+    </div>
+    <ol class="guide-list">
+        <li><strong>目标达标线</strong>：直接在页面顶部徽章内修改目标出勤率，保存后会影响所有月份计算。</li>
+        <li><strong>手动选择</strong>：你在月度日历里手动点选的日期不会被”智能排班“或”工作日全设为公司“覅该</li>
+        <li><strong>清空本月选择</strong>：会按”包含过去日期“开关决定清空范围，并清空范围内的手动选择</li>
+        <li><strong>智能推荐排班</strong>：默认只调整明天及之后；今天在日历中手动确认，勾选“包含获取日期”才会重排整月</li>
+        <li><strong>节假日</strong>：节假日同步和公司日历差异，请在“节假日调整”页面处理。</li>
+    </ol>
 </section>
 
 <div id="confirmDialog" class="confirm-overlay hidden" role="presentation">
-  <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
-    <div class="confirm-modal-head" aria-hidden="true">
-      <p class="eyebrow">Confirm Action</p>
-      <h2 id="confirmDialogTitle">确认操作</h2>
-      <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">✕</button>
-    </div>
-    <div id="confirmDialogMessage" class="confirm-modal__message">--</div>
-    <div class="confirm-modal__actions">
-      <button id="confirmDialogCancel" type="button">取消</button>
-      <button id="confirmDialogConfirm" class="danger-button" type="button">确认继续</button>
-    </div>
-  </section>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
+        <div class="confirm-modal__halo" aria-hidden="true"></div>
+        <div class="confirm-modal__head">
+            <div>
+                <p class="eyebrow">Confirm Action</p>
+                <h2 id="confirmDialogTitle">确认操作</h2>
+            </div>
+            <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">✕</button>
+        </div>
+        <p id="confirmDialogMessage" class="confirm-modal__message">-</p>
+        <div class="confirm-modal__actions">
+            <button id="confirmDialogCancel" type="button">取消</button>
+            <button id="confirmDialogConfirm" class="danger-button" type="button">确认继续</button>
+        </div>
+    </section>
 </div>
 
 <template id="dayCardTemplate">
-  <article class="day-card">
-    <div class="day-card-head">
-      <span class="day-number"></span>
-      <span class="day-name"></span>
-    </div>
-    <p class="day-reason"></p>
-    <p class="day-seat hidden"></p>
-    <div class="segmented" role="radiogroup">
-      <button type="button" data-status="office">公出</button>
-      <button type="button" data-status="home">居家</button>
-      <button type="button" data-status="leave" title="请假按休息日处理，不计入分母，也不计入公出打卡分子">请假</button>
-    </div>
-  </article>
+    <article class="day-card">
+        <div class="day-card__head">
+            <span class="day-number"></span>
+            <span class="day-name"></span>
+        </div>
+        <p class="day-reason"></p>
+        <p class="day-seat hidden"></p>
+        <div class="segmented" role="radiogroup">
+            <button type="button" data-status="office">公司</button>
+            <button type="button" data-status="home">居家</button>
+            <button type="button" data-status="leave" title="请假按休息日处理，不计入分母，也不计入公司打卡分子">请假</button>
+        </div>
+    </article>
 </template>
 
 <script src="/static/js/app.js"></script>
 </body>
 </html>
+

@@ -1,33 +1,33 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>离线 | 月度出勤率计算器</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#176b4f" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="出勤计算器" />
-  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
-  <link rel="stylesheet" href="/static/css/style.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>离线 | 月度出勤率计算器</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <meta name="theme-color" content="#176b4f"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="出勤计算器"/>
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg"/>
+    <link rel="stylesheet" href="/static/css/styles.css"/>
 </head>
 <body data-page="offline">
 <main class="shell auth-shell">
-  <section class="hero auth-hero" aria-labelledby="page-title">
-    <div class="hero-copy">
-      <p class="eyebrow">Offline Mode</p>
-      <h1 id="page-title">当前处于离线状态</h1>
-      <p class="lede">已缓存的页面仍可打开，但登录、保存登记、同步节假日等操作需要连接到后端服务。</p>
-      <p class="lede"><a class="ghost-button button-link action-link action-link--back" href="/index.html"><span class="button-link__icon" aria-hidden="true">←</span><span>返回出勤登记</span></a></p>
-    </div>
-    <div class="hero-badge" aria-label="离线提示">
-      <span>PWA</span>
-      <strong>OFF</strong>
-      <small>等待网络恢复</small>
-    </div>
-  </section>
+    <section class="hero auth-hero" aria-labelledby="page-title">
+        <div class="hero__copy">
+            <p class="eyebrow">Offline Mode</p>
+            <h1 id="page-title">当前处于离线状态</h1>
+            <p class="lede">已缓存的页面仍可打开，但登录、保存登记、同步节假日等操作需要连接到后端服务。</p>
+            <p class="lede"><a class="ghost-button button-link action-link action-link--back" href="./index.html"><span class="button-link__icon" aria-hidden="true">←</span><span>返回出勤登记</span></a></p>
+        </div>
+        <div class="hero__badge" aria-label="离线提示">
+            <span>PWA</span>
+            <strong>OFF</strong>
+            <small>等待网络恢复</small>
+        </div>
+    </section>
 </main>
 </body>
 </html>

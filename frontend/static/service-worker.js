@@ -1,13 +1,13 @@
-const CACHE_NAME = 'attendance-pwa-v18';
+const CACHE_NAME = 'attendance-pwa-v14';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/login.html',
-  '/notisave.html',
-  '/add-class.html',
+  '/holidays.html',
+  '/api-docs.html',
   '/offline.html',
   '/manifest.webmanifest',
-  '/static/css/style.css',
+  '/static/css/styles.css',
   '/static/js/app.js',
   '/static/icons/icon.svg',
 ];
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-      if (response && response.status === 200 && response.url.startsWith(self.location.origin)) {
+      if (response.ok && url.origin === self.location.origin) {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
       }
@@ -59,3 +59,4 @@ self.addEventListener('fetch', (event) => {
     }))
   );
 });
+

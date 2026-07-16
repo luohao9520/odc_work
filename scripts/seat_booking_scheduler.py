@@ -17,10 +17,11 @@ def main() -> int:  # Ethan Luo
         results = run_due_seat_bookings()
     print(f"Seat booking scheduler finished: {len(results)} job(s) executed.")
     for result in results:
-        run = result.get('run', {})
-        print(f"{run.get('bookingDate', '')} {run.get('seatName') or run.get('seatId', '')}: {run.get('status', '')} {run.get('message', '')}")
+        run = result.get("run", {})
+        print(f"- {run.get('bookingDate', '')} {run.get('seatName') or run.get('seatId', '')}: {run.get('status', '')} {run.get('message', '')}")
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())
+

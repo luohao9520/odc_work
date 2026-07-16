@@ -1,99 +1,105 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>节假日调整 | 月度出勤率计算器</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#176b4f" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="出勤计算" />
-  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
-  <link rel="stylesheet" href="/static/css/style.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>节假日调整 | 月度出勤率计算器</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <meta name="theme-color" content="#176b4f"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="出勤计算器"/>
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg"/>
+    <link rel="stylesheet" href="/static/css/styles.css"/>
 </head>
 <body data-page="holidays">
 <main class="shell">
-  <nav class="top-nav" aria-label="页面导航">
-    <a class="nav-link" href="./index.html">出勤登记</a>
-    <a class="nav-link active" href="./holidays.html">节假日调整</a>
-    <a class="nav-link" href="./seat-booking.html">座位预约</a>
-    <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
-    <a class="nav-link" href="./api-docs.html">接口测试</a>
-    <span id="userBadge" class="nav-user">未登录</span>
-    <button id="logoutBtn" class="nav-logout" type="button">退出</button>
-  </nav>
+    <nav class="top-nav" aria-label="页面导航">
+        <a class="nav-link" href="./index.html">出勤登记</a>
+        <a class="nav-link active" href="./holidays.html">节假日调整</a>
+        <a class="nav-link" href="./seat-booking.html">座位预约</a>
+        <a class="nav-link admin-only hidden" href="./admin.html">系统管理</a>
+        <a class="nav-link" href="./api-docs.html">接口测试</a>
+        <span id="userBadge" class="nav-user">未登录</span>
+        <button id="logoutBtn" class="nav-logout" type="button">退出</button>
+    </nav>
 
-  <section class="hero" aria-labelledby="page-title">
-    <div class="hero-copy">
-      <p class="eyebrow">Holiday Control Room</p>
-      <h1 id="page-title">节假日调整</h1>
-      <p class="lede">按年自动获取中国节假日，可以灵活补充节假日名称，你可以点选任意日期，然后决定将其调整为休息日或补为工作日。</p>
-    </div>
-    <div class="hero-badge" aria-label="本地保存">
-      <span>本地</span>
-      <strong>存储</strong>
-      <small>数据保存在本地</small>
-    </div>
-  </section>
-
-  <section class="workspace holiday-workspace">
-    <section class="panel holiday-editor-panel" aria-labelledby="editor-title">
-      <div class="section-title">
-        <p class="eyebrow">Annual Calendar</p>
-        <h2 id="editor-title">年度节假日编辑</h2>
-      </div>
-      <a class="ghost-button button-link action-link action-link--back" href="/index.html"><span class="button-link__icon" aria-hidden="true">←</span><span>返回出勤登记</span></a>
-      <div class="holiday-toolbar">
-        <div class="field compact">
-          <label for="yearInput">选择年份</label>
-          <select id="yearInput"></select>
+    <section class="hero" aria-labelledby="page-title">
+        <div class="hero__copy">
+            <p class="eyebrow">Holiday Control Room</p>
+            <h1 id="page-title">节假日调整</h1>
+            <p class="lede">按年自动获取中国节假日，并以完整日历展示节假日名称。你可以点击任意日期，按公司实际考勤日历然调整为名字或是否为节假日。</p>
         </div>
-        <button id="fetchHolidaysBtn" type="button">自动获取中国节假日</button>
-        <div class="field source-user-field">
-          <label for="sourceUserSelect">选择源用户</label>
-          <select id="sourceUserSelect" aria-label="选择源用户"></select>
+        <div class="hero__badge" aria-label="本地保存">
+            <span>本地</span>
+            <strong>存储</strong>
+            <small>按用户持久化</small>
         </div>
-        <button id="copyHolidayBtn" type="button">同步所选用户配置</button>
-      </div>
-      <div id="holidayCalendar" class="holiday-calendar" aria-live="polite"></div>
     </section>
 
-    <aside class="panel explainer" aria-labelledby="preview-title">
-      <p class="eyebrow">Preview</p>
-      <h2 id="preview-title">单日调整</h2>
-      <div class="mini-metrics">
-        <div>
-          <span>休息日天数</span>
-          <strong id="holidayCount">0</strong>
-        </div>
-        <div>
-          <span>补班日天数</span>
-          <strong id="workdayCount">0</strong>
-        </div>
-      </div>
-      <p id="holidayStatus" class="formula">正在加载...</p>
-      <p id="holidayMeta" class="hint">...</p>
-      <div class="day-editor">
-        <p id="selectedDateLabel" class="selected-date">请选择一个日期</p>
-        <div class="field">
-          <label for="dayTypeSelect">日期类型</label>
-          <select id="dayTypeSelect">
-            <option value="normal">普通日（按周末/工作日自然判断）</option>
-            <option value="holiday">休息日（调休放假，不可选择，不计入分母）</option>
-            <option value="workday">补班日（即使是周末也计入分母）</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="dayNameInput">节假日名称</label>
-          <input id="dayNameInput" placeholder="例如：国庆节 / 公司假期" />
-        </div>
-        <button id="saveDayBtn" class="primary-button" type="button">保存这一天</button>
-      </div>
-    </aside>
-  </section>
+    <section class="workspace holiday-workspace">
+        <section class="panel holiday-editor-panel" aria-labelledby="editor-title">
+            <div class="section-title">
+                <div>
+                    <p class="eyebrow">Annual Calendar</p>
+                    <h2 id="editor-title">年度完整日历</h2>
+                </div>
+                <a class="ghost-button button-link action-link action-link--back" href="/index.html"><span class="button-link__icon" aria-hidden="true">←</span><span>返回出勤登记</span></a>
+            </div>
+
+            <div class="holiday-toolbar">
+                <div class="field compact">
+                    <label for="yearInput">选择年份</label>
+                    <select id="yearInput" aria-label="选择年份"></select>
+                </div>
+                <button id="fetchHolidayBtn" type="button">自动获取中国节假日</button>
+                <div class="field source-user-field">
+                    <label for="sourceUserSelect">从其他用户同步</label>
+                    <select id="sourceUserSelect" aria-label="选择源用户"></select>
+                </div>
+                <button id="copyHolidayBtn" type="button">同步所选用户配置</button>
+            </div>
+            
+            <div id="holidayCalendar" class="holiday-calendar" aria-live="polite"></div>
+        </section>
+
+        <aside class="panel explainer" aria-labelledby="preview-title">
+            <p class="eyebrow">Preview</p>
+            <h2 id="preview-title">单日调整</h2>
+            <div class="mini-metrics">
+                <div>
+                    <span>休息日天数</span>
+                    <strong id="holidayCount">0</strong>
+                </div>
+                <div>
+                    <span>补班日天数</span>
+                    <strong id="workdayCount">0</strong>
+                </div>
+            </div>
+            <p id="holidayStatus" class="formula">正在加载…</p>
+            <p id="holidayMeta" class="hint">…</p>
+            <div class="day-editor">
+                <p id="selectedDateLabel" class="selected-date">请选择一个日期</p>
+                <div class="field">
+                    <label for="dayTypeSelect">日期类型</label>
+                    <select id="dayTypeSelect">
+                        <option value="normal">普通日（按周末/工作日自然判断）</option>
+                        <option value="holiday">休息日/调休放假，（不可选择，不计入分母）</option>
+                        <option value="workday">补班日（即使是周末也计入分母）</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="dayNameInput">节假日名称</label>
+                    <input id="dayNameInput" placeholder="例如：国庆节 / 公司假期"/>
+                </div>
+                <button id="saveDayBtn" class="primary-button" type="button">保存这一天</button>
+            </div>
+        </aside>
+    </section>
 </main>
+
 <script src="/static/js/app.js"></script>
 </body>
 </html>
+

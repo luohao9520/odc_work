@@ -20,10 +20,10 @@ from backend.app.shared.calendar_utils import now_iso  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:  # Ethan Luo
-    parser = argparse.ArgumentParser(description="初始化考勤打卡系统 SQLite 数据库。")
+    parser = argparse.ArgumentParser(description="初始化出勤率计算器 SQLite 数据库。")
     parser.add_argument("--reset", action="store_true", help="清空所有用户、出勤、节假日和同步配置数据。")
-    parser.add_argument("--yes", action="store_true", help="--reset 时无需交互确认。")
-    parser.add_argument("--username", help="可选：初始用户用户名。")
+    parser.add_argument("--yes", action="store_true", help="确认执行 --reset；未提供时不会清空数据。")
+    parser.add_argument("--username", help="可选：创建初始用户。")
     parser.add_argument("--password", help="可选：初始用户密码，至少 6 位。")
     parser.add_argument("--sync-year", type=int, help="可选：为初始用户自动同步指定年份节假日与补班信息。")
     return parser.parse_args()
@@ -35,7 +35,7 @@ def reset_database() -> None:  # Ethan Luo
         row["name"]
         for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
     }
-    for table in ("data_cleanup_settings", "seat_booking_scheduler_state", "seat_booking_runs", "seat_booking_plans", "seat_booking_settings", "holiday_sync", "holidays", "overtime", "attendances", "user_page_permissions", "settings", "users"):
+    for table in ("data_cleanup_settings", "seat_booking_scheduler_state", "seat_booking_runs", "seat_booking_plans", "seat_booking_settings", "holiday_syncs", "holidays", "overtime", "attendance", "user_page_permissions", "settings", "users"):
         if table not in existing_tables:
             continue
         db.execute(f"DELETE FROM {table}")
@@ -64,7 +64,7 @@ def create_initial_user(username: str, password: str) -> int:  # Ethan Luo
     try:
         cur = db.execute(
             "INSERT INTO users(username, password_hash, created_at, role) VALUES (?, ?, ?, ?)",
-            (normalized_username, generate_password_hash(password), now_iso(), role)
+            (normalized_username, generate_password_hash(password), now_iso(), role),
         )
         user_id = cur.lastrowid
         if user_id is None:
@@ -73,14 +73,14 @@ def create_initial_user(username: str, password: str) -> int:  # Ethan Luo
         replace_user_page_permissions(user_id, default_page_ids_for_role(role), role, commit=False)
         db.commit()
         return user_id
-    except sqlite3.IntegrityError as ex:
-        raise ValueError("用户名已存在。") from ex
+    except sqlite3.IntegrityError as exc:
+        raise ValueError("用户名已存在。") from exc
 
 
 def main() -> int:  # Ethan Luo
     args = parse_args()
     app = create_app({"SEAT_BOOKING_SCHEDULER_ENABLED": False, "DATA_CLEANUP_SCHEDULER_ENABLED": False})
-    print(f"数据库已初始化: {DATABASE}")
+    print(f"数据库已初始化：{DATABASE}")
 
     if args.reset and not args.yes:
         print("清空数据需要同时提供 --reset --yes。", file=sys.stderr)
@@ -98,7 +98,7 @@ def main() -> int:  # Ethan Luo
     if args.username and args.password:
         with app.app_context():
             user_id = create_initial_user(args.username, args.password)
-            print(f"初始用户已就绪: {args.username} (id={user_id})")
+            print(f"初始用户已就绪：{args.username} (id={user_id})")
             if args.sync_year:
                 ensure_holidays_for_user(user_id, args.sync_year)
                 print(f"已为用户 {args.username} 初始化 {args.sync_year} 年节假日/补班信息。")
@@ -111,3 +111,4 @@ def main() -> int:  # Ethan Luo
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -5,7 +5,7 @@
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fffaf9",
+  "background_color": "#fffaf0",
   "theme_color": "#176b4f",
   "orientation": "portrait-primary",
   "lang": "zh-CN",
@@ -19,3 +19,4 @@
     }
   ]
 }
+

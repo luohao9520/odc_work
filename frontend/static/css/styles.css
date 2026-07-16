@@ -64,7 +64,7 @@ a {
     left: 16px;
     top: 12px;
     z-index: 20;
-    transform: translate(-140%);
+    transform: translateY(-140%);
     border-radius: 999px;
     padding: 9px 14px;
     color: var(--paper);
@@ -575,7 +575,6 @@ input:focus, textarea:focus, select:focus, button:focus-visible {
     color: var(--ink);
 }
 
-
 .seat-booking-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
@@ -674,7 +673,7 @@ input:focus, textarea:focus, select:focus, button:focus-visible {
 }
 
 .seat-calendar-day.outside {
-    opacity: 0.40;
+    opacity: 0.48;
     background: rgba(229, 225, 215, 0.46);
     border-style: dashed;
 }
@@ -686,13 +685,8 @@ input:focus, textarea:focus, select:focus, button:focus-visible {
     box-shadow: 0 16px 34px rgba(23, 107, 79, 0.18);
 }
 
-.seat-calendar-day.selected {
-    box-shadow: 0 16px 34px rgba(23, 107, 79, 0.18);
-}
-
 .seat-calendar-day.selected small {
     color: rgba(255, 248, 232, 0.84);
-    box-shadow: inset 0 0 0 2px rgba(23, 107, 79, 0.1);
 }
 
 .seat-calendar-day.booked {
@@ -838,11 +832,11 @@ input:focus, textarea:focus, select:focus, button:focus-visible {
 
 .seat-card-actions {
     flex: 0 0 auto;
-    grid-template-columns: repeat(2, minmax(60px, auto));
+    grid-template-columns: repeat(2, minmax(88px, auto));
 }
 
 .seat-card-actions button {
-    padding: 6px 16px;
+    padding: 8px 10px;
     font-size: 0.82rem;
 }
 
@@ -879,12 +873,12 @@ button {
     color: var(--ink);
     background: #fff7e3;
     font-weight: 800;
-    transition: transform 100ms ease, background 100ms ease, box-shadow 100ms ease;
+    transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 button:hover:not(:disabled) {
-    transform: translate(-1px);
-    box-shadow: 0 16px 22px rgba(44, 35, 18, 0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(44, 35, 18, 0.12);
 }
 
 button:disabled {
@@ -893,11 +887,11 @@ button:disabled {
 }
 
 .ghost-button {
-    min-height: 40px;
+    min-height: 48px;
     color: var(--paper);
-    background: linear-gradient(135deg, var(--ink), #170b4f);
+    background: linear-gradient(135deg, var(--ink), #214836);
     border-color: rgba(23, 33, 27, 0.24);
-    box-shadow: 0 12px 36px rgba(23, 33, 27, 0.14);
+    box-shadow: 0 12px 30px rgba(23, 33, 27, 0.14);
 }
 
 .primary-button {
@@ -907,7 +901,7 @@ button:disabled {
 
 .danger-button {
     color: #fff8e8;
-    background: linear-gradient(135deg, var(--leave), #6b4b35);
+    background: linear-gradient(135deg, var(--leave), #c64a35);
     border-color: rgba(155, 49, 73, 0.36);
 }
 
@@ -1039,7 +1033,7 @@ button:disabled {
 .smart-strategy-field {
     display: grid;
     gap: 4px;
-    min-width: 160px;
+    min-width: 168px;
     color: var(--muted);
     font-size: 0.78rem;
     font-weight: 800;
@@ -1099,7 +1093,7 @@ button:disabled {
     border: 1px solid var(--line);
     border-radius: 20px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.54);
+    background: rgba(255, 255, 255, 0.56);
     display: grid;
     gap: 10px;
     align-content: space-between;
@@ -1262,7 +1256,8 @@ button:disabled {
     display: grid;
     place-items: center;
     padding: 24px;
-    background: radial-gradient(circle at 45% 30%, rgba(242, 95, 58, 0.18), transparent 22rem), rgba(23, 33, 27, 0.34);
+    background: radial-gradient(circle at 45% 30%, rgba(242, 95, 58, 0.18), transparent 22rem),
+    rgba(23, 33, 27, 0.34);
     backdrop-filter: blur(12px);
     animation: fade-in 180ms ease both;
 }
@@ -1287,7 +1282,7 @@ button:disabled {
     width: 150px;
     height: 150px;
     border-radius: 999px;
-    background: radial-gradient(circle, rgba(242, 95, 58, 0.2), rgba(23, 107, 79, 0.08) 44%, transparent 76%);
+    background: radial-gradient(circle, rgba(242, 95, 58, 0.2), rgba(23, 107, 79, 0.08) 64%, transparent 70%);
     pointer-events: none;
 }
 
@@ -1407,13 +1402,9 @@ button:disabled {
     background: var(--locked);
 }
 
-.dot.locked {
-    background: var(--locked);
-}
-
 .formula {
     border-radius: 18px;
-    padding: 16px;
+    padding: 15px;
     background: #17211b;
     color: #fff8e8;
     line-height: 1.6;
@@ -1431,7 +1422,7 @@ button:disabled {
 .holiday-toolbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 10px;
     align-items: end;
     margin-bottom: 18px;
 }
@@ -1443,7 +1434,7 @@ button:disabled {
 .mini-metrics {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 10px;
     margin: 16px 0;
 }
 
@@ -1462,7 +1453,7 @@ button:disabled {
 
 .mini-metrics strong {
     display: block;
-    font-size: 2.0rem;
+    font-size: 2.6rem;
     line-height: 1;
     letter-spacing: -0.06em;
 }
@@ -1475,7 +1466,7 @@ button:disabled {
 
 .month-panel {
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: 26px;
     padding: 18px;
     background: rgba(255, 255, 255, 0.48);
 }
@@ -1489,7 +1480,7 @@ button:disabled {
 .month-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
 }
 
 .month-weekday {
@@ -1501,8 +1492,8 @@ button:disabled {
 
 .month-day {
     min-height: 70px;
-    border-radius: 14px;
-    padding: 6px 7px;
+    border-radius: 16px;
+    padding: 8px 7px;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     align-content: start;
@@ -1522,7 +1513,7 @@ button:disabled {
     max-width: 100%;
     min-width: 0;
     color: var(--leave);
-    font-size: 0.7rem;
+    font-size: 0.74rem;
     line-height: 1.22;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -1553,7 +1544,7 @@ button:disabled {
     outline: 3px solid rgba(242, 95, 58, 0.36);
 }
 
-.month-day.hidden {
+.month-day.blank {
     visibility: hidden;
 }
 
@@ -1573,7 +1564,7 @@ button:disabled {
 
 .check-row {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     align-items: flex-start;
     color: var(--muted);
     line-height: 1.6;
@@ -1607,11 +1598,11 @@ button:disabled {
 
 .endpoint-card {
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: 22px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.5);
     display: grid;
-    gap: 16px;
+    gap: 10px;
 }
 
 .endpoint-card__head {
@@ -1638,10 +1629,10 @@ button:disabled {
 }
 
 .endpoint-card textarea, .api-tester textarea {
-    min-height: 100px;
+    min-height: 108px;
     resize: vertical;
     font-family: Consolas, "Courier New", monospace;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
 }
 
 .api-method {
@@ -1652,7 +1643,7 @@ button:disabled {
     background: var(--ink);
     font-size: 0.76rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
 }
 
 .endpoint-actions {
@@ -1689,11 +1680,11 @@ button:disabled {
 @keyframes rise {
     from {
         opacity: 0;
-        transform: translate(8px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
-        transform: translate(0);
+        transform: translateY(0);
     }
 }
 
@@ -1723,7 +1714,7 @@ button:disabled {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .field-wide {
+    .field--wide {
         grid-column: 1 / -1;
     }
 
@@ -1782,15 +1773,15 @@ button:disabled {
 
     .guide-panel {
         right: 10px;
-        bottom: 70px;
+        bottom: 76px;
         width: calc(100vw - 20px);
     }
 
     .confirm-overlay {
-        padding: 10px;
+        padding: 16px;
     }
 
-    .confirm-model {
+    .confirm-modal {
         border-radius: 24px;
         padding: 18px;
     }
@@ -1851,16 +1842,12 @@ button:disabled {
         grid-template-columns: 1fr;
     }
 
-    .seat-calendar-cell {
-        display: grid;
-    }
-
-    .seat-calendar-cell.has-picker {
+    .seat-calendar-weekdays {
         display: none;
     }
 
     .seat-calendar-day {
-        min-height: 70px;
+        min-height: 76px;
     }
 
     .seat-card {
@@ -1877,332 +1864,3 @@ button:disabled {
     }
 }
 
-.confirm-modal {
-    background: rgba(255, 250, 240, 0.96);
-    box-shadow: 0 32px 90px rgba(23, 33, 27, 0.34);
-    animation: modal-rise 220ms ease both;
-}
-
-.confirm-modal__halo {
-    position: absolute;
-    right: -48px;
-    top: -58px;
-    width: 150px;
-    height: 150px;
-    border-radius: 999px;
-    background: radial-gradient(circle, rgba(242, 95, 58, 0.2), rgba(23, 107, 79, 0.08) 64%, transparent 70%);
-    pointer-events: none;
-}
-
-.confirm-modal__head,
-.confirm-modal__actions {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    gap: 14px;
-}
-
-.confirm-modal__head {
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 12px;
-}
-
-.confirm-modal__head h2 {
-    margin: 2px 0 0;
-    font-size: clamp(1.35rem, 3vw, 1.78rem);
-}
-
-.confirm-modal__close {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    font-size: 1.25rem;
-    background: rgba(255, 255, 255, 0.58);
-}
-
-.confirm-modal__message {
-    position: relative;
-    z-index: 1;
-    margin: 0 0 20px;
-    color: var(--muted);
-    line-height: 1.68;
-}
-
-.confirm-modal__actions {
-    justify-content: flex-end;
-    flex-wrap: wrap;
-}
-
-.confirm-modal__actions button {
-    min-height: 40px;
-    min-width: 112px;
-}
-
-@keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes modal-rise {
-    from {
-        opacity: 0;
-        transform: translate(12px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translate(0) scale(1);
-    }
-}
-
-.explainer {
-    position: sticky;
-    top: 16px;
-}
-
-.explainer h3 {
-    padding-left: 1.25rem;
-    color: var(--muted);
-    line-height: 1.72;
-}
-
-.explainer code {
-    color: var(--accent);
-}
-
-.legend {
-    display: grid;
-    gap: 16px;
-    margin: 20px 0;
-}
-
-.legend span {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    color: var(--muted);
-}
-
-.dot {
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.dot.office {
-    background: var(--office);
-}
-
-.dot.home {
-    background: var(--home);
-}
-
-.dot.leave {
-    background: var(--leave);
-}
-
-.dot.locked {
-    background: var(--locked);
-}
-
-.guide-panel {
-    position: fixed;
-    right: max(20px, env(safe-area-inset-right));
-    bottom: calc(max(20px, env(safe-area-inset-bottom)) + 60px);
-    z-index: 30;
-    width: min(380px, calc(100vw - 32px));
-    max-height: min(620px, calc(100vh - 120px));
-    overflow: auto;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 18px;
-    color: var(--ink);
-    background: rgba(255, 250, 240, 0.96);
-    box-shadow: 0 20px 80px rgba(44, 35, 18, 0.22);
-    backdrop-filter: blur(14px);
-}
-
-.guide-panel__head {
-    display: flex;
-    justify-content: space-between;
-    gap: 14px;
-    align-items: start;
-    margin-bottom: 12px;
-}
-
-.guide-panel__head button {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    font-size: 1.25rem;
-}
-
-.guide-list {
-    margin: 0;
-    padding-left: 1.25rem;
-    color: var(--muted);
-    line-height: 1.72;
-}
-
-.guide-list strong {
-    color: var(--ink);
-}
-
-.confirm-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: radial-gradient(circle at 40% 30%, rgba(242, 95, 58, 0.18), transparent 22rem),
-    rgba(23, 33, 27, 0.34);
-    backdrop-filter: blur(12px);
-    animation: fade-in 180ms ease both;
-}
-
-.confirm-modal {
-    position: relative;
-    width: min(460px, 100%);
-    overflow: hidden;
-    border: 1px solid rgba(255, 250, 240, 0.62);
-    border-radius: 28px;
-    padding: 22px;
-    color: var(--ink);
-}
-
-.weekday-row, .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.weekday-row {
-    margin-bottom: 10px;
-    color: var(--muted);
-    font-weight: 700;
-    text-align: center;
-}
-
-.day-card {
-    min-height: 142px;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.56);
-    display: grid;
-    gap: 10px;
-    align-content: space-between;
-    animation: rise 420ms ease both;
-}
-
-.day-card.empty {
-    visibility: hidden;
-}
-
-.day-card.locked {
-    background: var(--locked-soft);
-    color: var(--locked);
-}
-
-.day-card.office {
-    background: var(--office-soft);
-    border-color: rgba(23, 107, 79, 0.35);
-}
-
-.day-card.home {
-    background: var(--home-soft);
-    border-color: rgba(179, 107, 0, 0.35);
-}
-
-.day-card.leave {
-    background: var(--leave-soft);
-    border-color: rgba(155, 49, 73, 0.35);
-}
-
-.day-card__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.day-number {
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: -0.08em;
-}
-
-.day-name, .day-reason {
-    color: var(--muted);
-    font-size: 0.82rem;
-}
-
-.day-reason {
-    margin: 0;
-    min-height: 1.2em;
-}
-
-.day-seat {
-    margin: 0;
-    border-radius: 999px;
-    padding: 5px 8px;
-    color: var(--office);
-    background: rgba(216, 242, 230, 0.76);
-    font-size: 0.76rem;
-    font-weight: 800;
-}
-
-.segmented {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-}
-
-.segmented button {
-    padding: 7px 4px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    background: rgba(255, 255, 255, 0.64);
-}
-
-.segmented button.active[data-status="office"] {
-    color: white;
-    background: var(--office);
-}
-
-.segmented button.active[data-status="home"] {
-    color: #fff8e8;
-    background: var(--home);
-}
-
-.segmented button.active[data-status="leave"] {
-    color: white;
-    background: var(--leave);
-}
-
-.hidden {
-    display: none !important;
-}
-
-.guide-fab {
-    position: fixed;
-    right: max(20px, env(safe-area-inset-right));
-    bottom: max(20px, env(safe-area-inset-bottom));
-    z-index: 15;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    color: #fff8e8;
-    background: linear-gradient(145deg, var(--ink), var(--office));
-    box-shadow: 0 16px 44px rgba(23, 33, 27, 0.24);
-    font-size: 1.35rem;
-    font-weight: 900;
-}
