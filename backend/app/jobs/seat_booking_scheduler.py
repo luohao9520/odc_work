@@ -83,7 +83,7 @@ def try_acquire_scheduler_lease(lease_seconds: int = DEFAULT_LEASE_SECONDS, now:
         db.rollback()
         return False
     db.execute(
-        "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?)"
+        "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?) "
         "ON CONFLICT(name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
         (SCHEDULER_NAME, locked_until, now_text),
     )

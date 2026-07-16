@@ -72,7 +72,7 @@ def choose_booking_seat(client: SeatBookingClient, booking_date: str, preferred_
             return seat["id"], seat.get("name") or seat["id"], "首选座位可用。"
     preferred_key = seat_sort_key(preferred_seat_id)
     fallback = min(seats, key=lambda seat: abs(seat_sort_key(seat["id"])[1] - preferred_key[1]) if seat_sort_key(seat["id"])[0] == preferred_key[0] else 10_000 + seat_sort_key(seat["id"])[1])
-    return fallback["id"], fallback.get("name") or fallback["id"], f"首选座位不可用，已选择 {fallback['id']}。"
+    return fallback["id"], fallback.get("name") or fallback["id"], f"首选座位{preferred_seat_id} 不可用，已选择 {fallback['id']}。"
 
 
 def read_settings(user_id: int) -> dict:
@@ -309,7 +309,7 @@ def book_with_settings(user_id: int, booking_date: str | None = None, seat_id: s
     if not target_seat_id:
         raise ValueError("请先选择或填写座位 ID。")
     if successful_booking_count_for_week(user_id, target_date) >= 3:
-        message = "同一周已有 3 天座位预约成功，本次不再自动预约；如需继续，请先取消该周某天预约/"
+        message = "同一周已有 3 天座位预约成功，本次不再自动预约；如需继续，请先取消该周某天预约。"
         run = save_run(user_id, target_date, target_seat_id, target_seat_name, "skipped", message)
         return {"ok": True, "run": run}
 
@@ -319,7 +319,7 @@ def book_with_settings(user_id: int, booking_date: str | None = None, seat_id: s
         result = client.book_seat(target_date, target_seat_id, target_seat_name)
         message = str(result.get("message") or "预约请求已提交。")
         if seat_note and seat_note not in message:
-            message = f"{seat_note} 已预约成功"
+            message = f"{seat_note}{message}"
         status = "limited" if LIMIT_MESSAGE in message else "success" if result.get("ok") else "failed"
     except Exception as exc:
         message = str(exc)
@@ -362,7 +362,7 @@ def sync_seat_booking_from_platform():
     except (SeatBookingError, ValueError) as exc:
         return jsonify({"error": str(exc)}), 400
     except Exception as exc:
-        return jsonify({"error": f"同步外部平台预约失败： {exc}"}), 502
+        return jsonify({"error": f"同步外部平台预约失败：{exc}"}), 502
     month = str(request.args.get("month") or datetime.now().strftime("%Y-%m"))[:7]
     return jsonify({**result, "plans": read_plans_for_month(user_id, month), "runs": read_runs(user_id)})
 
@@ -519,7 +519,7 @@ def run_due_seat_bookings(current_time: datetime | None = None) -> list[dict]:
             continue
         existing = db.execute(
             "SELECT id FROM seat_booking_runs WHERE user_id = ? AND booking_date = ? AND seat_id = ? AND status IN ('success', 'limited') LIMIT 1",
-            (user_id, row["booking_date"], row["seat_id"])
+            (user_id, row["booking_date"], row["seat_id"]),
         ).fetchone()
         if existing:
             continue

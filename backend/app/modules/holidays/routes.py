@@ -66,7 +66,7 @@ def replace_holidays_for_year(user_id: int, year: int, holidays: list[dict], sou
             is_holiday = bool(item.get("isHoliday", True))
             db.execute(
                 "INSERT INTO holidays(user_id, holiday_date, name, is_holiday, source, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (user_id, iso_date, item.get("name") or ("节假日" if is_holiday else "补班"), int(is_holiday), source, now_iso())
+                (user_id, iso_date, item.get("name") or ("节假日" if is_holiday else "补班"), int(is_holiday), source, now_iso()),
             )
     db.execute(
         "INSERT INTO holiday_syncs(user_id, year, source, updated_at) VALUES (?, ?, ?, ?) "

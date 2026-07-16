@@ -16,7 +16,7 @@ BOOK_LIST_PATH = "/Mobile/seat/getbooklist"
 SEAT_LIST_PATH = "/Mobile/seat/getseatlist"
 BOOK_SEAT_PATH = "/Mobile/seat/bookseat"
 CANCEL_SEAT_PATH = "/Mobile/seat/cancelbookseat"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0;Win64;x64)SeatBookingAssistant/1.0"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SeatBookingAssistant/1.0"
 LIMIT_MESSAGE = "预定次数不可超过3次"
 
 
@@ -181,12 +181,12 @@ def extract_bookings(result: dict) -> list[dict]:
     conservative: a record is synced only when it contains a recognizable date.
     """
     date_keys = ("book_date", "bookDate", "bookingDate", "date", "day", "bookday", "bookDay", "book_time", "bookTime")
-    seat_keys = ("seat_no", "seatNo","seat_id" , "seatId", "seatid", "id", "value", "seat", "seatNoText")
+    seat_keys = ("seat_no", "seatNo", "seat_id", "seatId", "seatid", "id", "value", "seat", "seatNoText")
     seat_name_keys = ("seat_name", "seatName", "seatname", "name", "label", "seat", "seatNoText")
     status_keys = ("status", "state", "book_status", "bookStatus")
 
     def normalize_date(value) -> str:
-        match = re.search(r"(20\d{2})\D{2}(\d{1,2})\D{2}(\d{1,2})", str(value or ""))
+        match = re.search(r"(20\d{2})\D?(\d{1,2})\D?(\d{1,2})", str(value or ""))
         if not match:
             return ""
         year, month, day = match.groups()

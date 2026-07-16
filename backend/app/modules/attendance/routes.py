@@ -56,7 +56,7 @@ def read_manual_attendance_history(user_id: int, through_month: str) -> list[dic
     """
     rows = get_db().execute(
         "SELECT work_date, status FROM attendance WHERE user_id = ? AND source = ? AND work_date < ? ORDER BY work_date DESC LIMIT 240",
-        (user_id, SOURCE_MANUAL, f"{next_month_value(through_month)}-01")
+        (user_id, SOURCE_MANUAL, f"{next_month_value(through_month)}-01"),
     ).fetchall()
     return [{"date": row["work_date"], "status": row["status"]} for row in rows]
 
@@ -170,7 +170,7 @@ def save_attendance():
     else:
         db.execute(
             "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
-            "ON CONFLICT(user_id,work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source",
+            "ON CONFLICT(user_id, work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source",
             (session["user_id"], iso_date, status, now_iso(), SOURCE_MANUAL),
         )
     db.commit()
@@ -244,12 +244,12 @@ def smart_schedule():
 
     db = get_db()
     for iso_date, status in plan["plannedSelections"].items():
-            db.execute(
-                "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
-                "ON CONFLICT(user_id, work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source "
-                "WHERE attendance.source != ?",
-                (user_id, iso_date, status, now_iso(), SOURCE_SMART, SOURCE_MANUAL),
-            )
+        db.execute(
+            "INSERT INTO attendance(user_id, work_date, status, updated_at, source) VALUES (?, ?, ?, ?, ?) "
+            "ON CONFLICT(user_id, work_date) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at, source = excluded.source "
+            "WHERE attendance.source != ?",
+            (user_id, iso_date, status, now_iso(), SOURCE_SMART, SOURCE_MANUAL),
+        )
     db.commit()
 
     updated = read_attendance_for_month(user_id, month)

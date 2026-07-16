@@ -88,8 +88,8 @@ def page_permissions_for_user(user_id: int, role: str) -> list[str]:
 def serialize_user(row) -> dict:
     role = normalize_role(row["username"], row["role"] if "role" in row.keys() else role_for_username(row["username"]))
     is_admin = role == "admin"
-    is_active = bool(row.get("is_active", True))
-    deactivated_at = row.get("deactivated_at")
+    is_active = bool(row["is_active"]) if "is_active" in row.keys() else True
+    deactivated_at = row["deactivated_at"] if "deactivated_at" in row.keys() else None
     return {
         "id": row["id"],
         "username": row["username"],

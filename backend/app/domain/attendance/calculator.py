@@ -177,7 +177,7 @@ def score_algorithmic_date(iso_date: str, profile: dict, existing_office_dates: 
 
     anchors = {date.fromisoformat(value) for value in existing_office_dates | selected_dates}
     if anchors:
-        nearest_gap = min(abs(current - anchor.days) for anchor in anchors)
+        nearest_gap = min(abs((current - anchor).days) for anchor in anchors)
         score += min(nearest_gap, 3) * 4
         if nearest_gap >= 2:
             reasons.append("与本周已有公司日保持间隔")

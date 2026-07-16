@@ -80,7 +80,7 @@ def try_acquire_cleanup_lease(lease_seconds: int = DEFAULT_LEASE_SECONDS, now: d
         db.rollback()
         return False
     db.execute(
-        "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?)"
+        "INSERT INTO seat_booking_scheduler_state(name, locked_until, updated_at) VALUES (?, ?, ?) "
         "ON CONFLICT(name) DO UPDATE SET locked_until = excluded.locked_until, updated_at = excluded.updated_at",
         (SCHEDULER_NAME, locked_until, now_text),
     )
@@ -109,7 +109,7 @@ def _scheduler_loop(app: Flask, interval_seconds: int) -> None:
             with app.app_context():
                 settings = get_cleanup_settings()
                 if not scheduled_cleanup_due(settings):
-                    message = "清理开关未启用或今日执行"
+                    message = "清理开关未启用或今日已执行"
                 elif try_acquire_cleanup_lease(lease_seconds=max(DEFAULT_LEASE_SECONDS, interval_seconds - 60)):
                     result = run_data_cleanup(dry_run=False, vacuum=True)
                     message = result["message"]
