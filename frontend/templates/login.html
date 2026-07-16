@@ -1,44 +1,44 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>登录 | 月度出勤率计算器</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#176b4f" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="出勤计算器" />
-  <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/static/icons/icon.svg" />
-  <link rel="stylesheet" href="/static/css/styles.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>登录 | 月度出勤率计算器</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <meta name="theme-color" content="#176b4f"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="出勤计算器"/>
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg"/>
+    <link rel="stylesheet" href="/static/css/styles.css"/>
 </head>
 <body data-page="login">
 <main class="shell auth-shell">
-  <section class="hero auth-hero" aria-labelledby="page-title">
-    <div class="hero__copy">
-      <p class="eyebrow">Private Attendance Ledger</p>
-      <h1 id="page-title">登录后保存你的登记</h1>
-      <p class="lede">每个用户拥有独立数据：出勤登记、目标比例、节假日调整互不影响。</p>
-    </div>
-    <form id="authForm" class="panel auth-card">
-      <p class="eyebrow">Account</p>
-      <h2>登录 / 注册</h2>
-      <div class="field">
-        <label for="usernameInput">用户名</label>
-        <input id="usernameInput" autocomplete="username" minlength="3" required />
-      </div>
-      <div class="field">
-        <label for="passwordInput">密码</label>
-        <input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required />
-      </div>
-      <p id="authMessage" class="hint">首次使用请点击“注册并进入”。</p>
-      <div class="auth-actions">
-        <button class="primary-button" type="submit" data-auth="login">登录</button>
-        <button type="submit" data-auth="register">注册并进入</button>
-      </div>
-    </form>
-  </section>
+    <section class="hero auth-hero" aria-labelledby="page-title">
+        <div class="hero__copy">
+            <p class="eyebrow">Private Attendance Ledger</p>
+            <h1 id="page-title">登录后保存你的登记</h1>
+            <p class="lede">每个用户拥有独立数据：出勤登记、目标比例、节假日调整互不影响。</p>
+        </div>
+        <form id="authForm" class="panel auth-card">
+            <p class="eyebrow">Account</p>
+            <h2>登录 / 注册</h2>
+            <div class="field">
+                <label for="usernameInput">用户名</label>
+                <input id="usernameInput" autocomplete="username" minlength="3" required/>
+            </div>
+            <div class="field">
+                <label for="passwordInput">密码</label>
+                <input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required/>
+            </div>
+            <p id="authMessage" class="hint">首次使用请点击“注册并进入”。</p>
+            <div class="auth-actions">
+                <button class="primary-button" type="submit" data-auth="login">登录</button>
+                <button type="submit" data-auth="register">注册并进入</button>
+            </div>
+        </form>
+    </section>
 </main>
 
 <script src="/static/js/app.js"></script>
