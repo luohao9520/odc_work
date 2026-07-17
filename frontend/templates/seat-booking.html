@@ -80,7 +80,7 @@
                 </label>
                 <div class="seat-booking-actions">
                     <button id="saveSeatBookingBtn" class="primary-button" type="submit">保存配置</button>
-                    <button id="syncSeatBookingBtn" type="button">同步平台预约</button>
+                    <button id="syncSeatBookingsBtn" type="button">同步平台预约</button>
                 </div>
                 <input id="seatBookingDate" type="hidden"/>
             </form>
@@ -93,9 +93,9 @@
             <ol>
                 <li>先保存外部平台账号和密码，再在日历中点选日期并读取座位。</li>
                 <li>如需自动提交，请打开“启用定时预约”，并为日历中的日期保存预约座位。</li>
-                <li>内置调度器会检查间隔自动执行到期计划，成功或失败结果会写入右侧执行记录并自动刷新。</li>
-                <li>若未启用定时预约，系统只保存座位选择，不会自动提交。</li>
-                <li>直接预约只能预约明天至 7 天后的日期，可在选日期后从座位卡片提交。</li>
+                <li>内置调度器会按检查间隔自动执行到期计划，成功或失败结果会写入右侧执行记录并自动刷新。</li>
+                <li>若未启用定时预约时，系统只保存座位选择，不会自动提交。</li>
+                <li>直接预约只能预约明天至 7 天后的日期，可在选中日期后从座位卡片提交。</li>
                 <li>已在外部平台预约过的记录，可点击“同步平台预约”显示到当前日历；右侧“显示日志”开关可临时收起任务记录。</li>
             </ol>
             <div class="holiday-source-card seat-scheduler-card">

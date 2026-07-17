@@ -46,7 +46,7 @@
     }
 
     function isDirectBookingDate(isoDate, now = new Date()) {
-        return isValidIsoDate(isoDate) && addDaysIso >= addDays(now, 1) && isoDate <= addDaysIso(now, 7);
+        return isValidIsoDate(isoDate) && isoDate >= addDaysIso(now, 1) && isoDate <= addDaysIso(now, 7);
     }
 
     function currentYearValue(now = new Date()) {
@@ -81,7 +81,7 @@
     }
 
     function splitMonthValue(monthValue) {
-        const [year, month, day] = (String(monthValue) || currentMonthValue()).split('-');
+        const [year, month] = String(monthValue || currentMonthValue()).split('-');
         return {year: Number(year) || currentYearValue(), month: Number(month) || new Date().getMonth() + 1};
     }
 
@@ -185,10 +185,10 @@
         if (!fetcher) throw new Error('当前环境不支持 fetch，无法自动获取节假日。');
 
         try {
-            const timorResponse = await fetcher(`https://timer.tech/api/holiday/year/${year}`);
+            const timorResponse = await fetcher(`https://timor.tech/api/holiday/year/${year}`);
             if (timorResponse && timorResponse.ok) {
                 const holidays = mapTimorHolidayResponse(String(year), await timorResponse.json());
-                if (holidays.length) return {holidays, source: 'timer.tech 中国节假日接口'};
+                if (holidays.length) return {holidays, source: 'timor.tech 中国节假日接口'};
             }
         } catch (error) {
             // 主接口失败时继续尝试备用接口。
@@ -201,7 +201,7 @@
                 if (holidays.length) return {holidays, source: 'Nager.Date Public Holidays API'};
             }
         } catch (error) {
-            // 两个接口都失败时，在下方统一抛出可读错误
+            // 两个接口都失败时，在下方统一抛出可读错误。
         }
 
         throw new Error('节假日接口没有返回可用数据。');
@@ -274,22 +274,22 @@
         dialog.className = 'confirm-overlay hidden';
         dialog.setAttribute('role', 'presentation');
         dialog.innerHTML = `
-        <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
-          <div class="confirm-modal__halo" aria-hidden="true"></div>
-          <div class="confirm-modal__head">
-            <div>
-              <p class="eyebrow">Confirm Action</p>
-              <h2 id="confirmDialogTitle">确认操作</h2>
-            </div>
-            <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">×</button>
+      <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
+        <div class="confirm-modal__halo" aria-hidden="true"></div>
+        <div class="confirm-modal__head">
+          <div>
+            <p class="eyebrow">Confirm Action</p>
+            <h2 id="confirmDialogTitle">确认操作</h2>
           </div>
-          <p id="confirmDialogMessage" class="confirm-modal__message">-</p>
-          <div class="confirm-modal__actions">
-            <button id="confirmDialogCancel" type="button">取消</button>
-            <button id="confirmDialogConfirm" class="danger-button" type="button">确认继续</button>
-          </div>
-        </section>
-        `;
+          <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">×</button>
+        </div>
+        <p id="confirmDialogMessage" class="confirm-modal__message">—</p>
+        <div class="confirm-modal__actions">
+          <button id="confirmDialogCancel" type="button">取消</button>
+          <button id="confirmDialogConfirm" class="danger-button" type="button">确认继续</button>
+        </div>
+      </section>
+    `;
         document.body.appendChild(dialog);
         dialog.querySelector('#confirmDialogCancel').addEventListener('click', () => closeSharedConfirmDialog(false));
         dialog.querySelector('#confirmDialogClose').addEventListener('click', () => closeSharedConfirmDialog(false));
@@ -416,19 +416,19 @@
             cleanupLastMessage.textContent = settings.lastMessage || '尚未执行自动或手动清理。';
             if (scheduler) {
                 cleanupSchedulerStatus.textContent = scheduler.enabled ? '调度器已启动' : '调度器未启动';
-                cleanupSchedulerDetail.textContent = scheduler.lastMessage || (settings.scheduledEnabled ? '等待下一次检查' : '等待管理员开启。');
+                cleanupSchedulerDetail.textContent = scheduler.lastMessage || (settings.scheduledEnabled ? '等待下一次检查。' : '管理员开关关闭。');
             }
         }
 
         function renderCleanupResult(result) {
-            cleanupResultTotal.textContent = result.message || `影响${result.totalDeleted || 0} 条`;
+            cleanupResultTotal.textContent = result.message || `影响 ${result.totalDeleted || 0} 条`;
             const deleted = result.deleted || {};
             const cutoffs = result.cutoffs || {};
             cleanupResultDetail.textContent = [
-                `考勤 ${deleted.attendance || 0} 条（早于 ${cutoffs.attendance || '-'}）`,
-                `加班 ${deleted.overtime || 0} 条（早于 ${cutoffs.overtime || '-'}）`,
-                `座位计划 ${deleted.seatBookingPlans || 0} 条（早于 ${cutoffs.seatBookingPlans || '-'}）`,
-                `运行日志 ${deleted.seatBookingRuns || 0} 条（早于 ${cutoffs.seatBookingRuns || '-'}）`,
+                `考勤 ${deleted.attendance || 0} 条（早于 ${cutoffs.attendance || '—'}）`,
+                `加班 ${deleted.overtime || 0} 条（早于 ${cutoffs.overtime || '—'}）`,
+                `座位计划 ${deleted.seatBookingPlans || 0} 条（早于 ${cutoffs.seatBookingPlans || '—'}）`,
+                `运行日志 ${deleted.seatBookingRuns || 0} 条（早于 ${cutoffs.seatBookingRuns || '—'}）`,
             ].join('；');
             if (result.settings) renderSettings(result.settings, result.scheduler);
         }
@@ -448,23 +448,23 @@
                     return `<label><input type="checkbox" value="${escapeHtml(page.id)}" ${checked} ${disabled} />${escapeHtml(page.label)}</label>`;
                 }).join('');
                 card.innerHTML = `
-        <div>
-          <h3>${escapeHtml(user.username)}<span class="user-status-badge" ${user.isActive ? 'active' : 'inactive'}>${user.isActive ? '启用' : '停用'}</span></h3>
-          <small class="hint">id=${user.id}${user.createdAt ? ` · ${escapeHtml(user.createdAt)}` : ''}${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</small>
-        </div>
-        <label class="field">
-          <span>角色</span>
-          <select data-role>
-            <option value="user" ${user.role === 'user' ? 'selected' : ''}>普通用户</option>
-            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>管理员</option>
-          </select>
-        </label>
-        <div class="admin-page-checks" aria-label="${escapeHtml(user.username)} 可访问页面">${checks}</div>
-        <div class="admin-user-actions">
-          <button type="button" data-save-user>保存</button>
-          <button type="button" data-toggle-user>${user.isActive ? '停用' : '启用'}</button>
-          <button type="button" class="danger-button" data-delete-user>删除</button>
-        </div>
+            <div>
+              <h3>${escapeHtml(user.username)} <span class="user-status-badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? '启用' : '停用'}</span></h3>
+              <small class="hint">id=${user.id}${user.createdAt ? ` · ${escapeHtml(user.createdAt)}` : ''}${user.deactivatedAt ? ` · 停用${escapeHtml(user.deactivatedAt)}` : ''}</small>
+            </div>
+            <label class="field">
+              <span>角色</span>
+              <select data-role>
+                <option value="user" ${user.role === 'user' ? 'selected' : ''}>普通用户</option>
+                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>管理员</option>
+              </select>
+            </label>
+            <div class="admin-page-checks" aria-label="${escapeHtml(user.username)} 可访问页面">${checks}</div>
+            <div class="admin-user-actions">
+              <button type="button" data-save-user>保存</button>
+              <button type="button" data-toggle-user>${user.isActive ? '停用' : '启用'}</button>
+              <button type="button" class="danger-button" data-delete-user>删除</button>
+            </div>
         `;
                 const roleSelect = card.querySelector('[data-role]');
                 const saveButton = card.querySelector('[data-save-user]');
@@ -534,7 +534,7 @@
                 deleteButton.addEventListener('click', async () => {
                     const confirmed = await confirmAction(`删除 ${user.username} 会永久删除该用户及其出勤、节假日、座位预约等所有业务数据。建议先备份数据库。确定继续吗？`,
                         {
-                            title: '删除用户及其相关数据',
+                            title: '删除用户及其数据',
                             confirmText: '确认删除',
                             tone: 'danger',
                         });
@@ -554,7 +554,7 @@
                 });
                 userAccessList.appendChild(card);
             });
-            if (!users.length) userAccessList.textContent = '暂无用户';
+            if (!users.length) userAccessList.textContent = '暂无用户。';
         }
 
         async function load() {
@@ -595,7 +595,7 @@
                 const result = await apiFetch('/api/admin/cleanup/run', {method: 'POST', body: JSON.stringify({dryRun: true})});
                 renderCleanupResult(result);
             } catch (error) {
-                cleanupResultTotal.textContent = `获取失败：${error.message}`;
+                cleanupResultTotal.textContent = `预览失败：${error.message}`;
             }
         });
 
@@ -679,7 +679,7 @@
         function applyRulesVisibility(visible) {
             showRulesToggle.checked = visible;
             showRulesToggle.setAttribute('aria-checked', String(visible));
-            rulePanel.textContent = visible ? '显示' : '隐藏';
+            showRulesText.textContent = visible ? '显示' : '隐藏';
             rulePanel.classList.toggle('hidden', !visible);
             attendanceWorkspace.classList.toggle('rules-hidden', !visible);
         }
@@ -693,7 +693,7 @@
         }
 
         function includePastDates() {
-            return Boolean(window.includePastToggle && window.includePastToggle.checked);
+            return Boolean(includePastToggle && includePastToggle.checked);
         }
 
         function scheduleScopeText() {
@@ -715,7 +715,7 @@
             if (smartStrategySelect && smartStrategySelect.value === 'recommended' && recommendation) {
                 smartStrategyHint.textContent = `智能推荐：${recommendation.label}。${recommendation.reason} 当前范围：${scheduleScopeText()}。`;
             } else {
-                smartStrategyHint.textContent = `当前使用：${selectedStrategyLabel()}。范围：${scheduleScopeText()}，优先满足每周 ${state.targetRate}% 公司打卡。`;
+                smartStrategyHint.textContent = `当前使用：${selectedStrategyLabel()}。范围：${scheduleScopeText()}；优先满足每周 ${state.targetRate}% 公司打卡。`;
             }
         }
 
@@ -765,13 +765,13 @@
 
                 if (!day.selectable) {
                     node.classList.add('locked');
-                    node.querySelector('.day-reason').textContent = `${day.iso} - ${day.reason}`;
+                    node.querySelector('.day-reason').textContent = `${day.iso} · ${day.reason}`;
                     node.querySelectorAll('button').forEach((button) => {
                         button.disabled = true;
                         button.setAttribute('aria-disabled', 'true');
                     });
                 } else if (status) {
-                    node.classList.add('active');
+                    node.classList.add(status);
                 }
 
                 node.querySelectorAll('button').forEach((button) => {
@@ -779,12 +779,12 @@
                     button.setAttribute('aria-pressed', String(status === buttonStatus));
                     if (status === buttonStatus) button.classList.add('active');
                     button.addEventListener('click', async () => {
-                        const nextStatus = status.selections[day.iso] === buttonStatus ? null : buttonStatus;
+                        const nextStatus = state.selections[day.iso] === buttonStatus ? null : buttonStatus;
                         await apiFetch('/api/attendance', {
                             method: 'PUT',
-                            body: JSON.stringify({date: day.iso, status: nextStatus})
+                            body: JSON.stringify({date: day.iso, status: nextStatus}),
                         });
-                        loadMonth();
+                        await loadMonth();
                     });
                 });
 
@@ -811,7 +811,7 @@
                     attendanceRate: 0,
                     remainingDays: 0,
                     passed: true,
-                }
+                },
             };
             // 出勤计算完全以后端 summary 为准，前端只负责格式化权威字段，避免整月和截至今日
             // 两种出勤率与 API 行为发生偏差。
@@ -823,14 +823,14 @@
                 : result.passed
                     ? `已超过最低要求 ${result.officeDays - result.requiredOfficeDays} 天`
                     : `还需公司打卡 ${result.remainingDays} 天`;
-            requiredDays.textContent = result.requiredOfficeDays
-            officeDays.textContent = result.officeDays
-            remainingDays.textContent = result.remainingDays
+            requiredDays.textContent = result.requiredOfficeDays;
+            officeDays.textContent = result.officeDays;
+            remainingDays.textContent = result.remainingDays === 0 ? '已满足最低要求' : `还需 ${result.remainingDays} 天`;
             const ratePercentText = `${Math.round(result.attendanceRate * 1000) / 10}%`;
             // `summary.toToday` 与整月出勤率使用同一公式，但会从分母中移除未来日期
             // 这样用户查看进度时，不会被未来未选择工作日拉低指标
             const toToday = result.toToday || {
-                denominator: 0, officeDays: 0, homeDays: 0, leaveDays: 0, attendanceRate: 0,
+                denominator: 0, officeDays: 0, homeDays: 0, leaveDays: 0, unselectedDays: 0, attendanceRate: 0,
                 requiredOfficeDays: 0
             };
             const rateToTodayText = `${Math.round(toToday.attendanceRate * 1000) / 10}%`;
@@ -838,9 +838,9 @@
             attendanceRate.textContent = ratePercentText;
             attendanceRateToToday.textContent = rateToTodayText;
             denominatorText.textContent = `分母 ${result.denominator} 天（含居家 ${result.homeDays} 天、未选 ${result.unselectedDays} 天；
-                请假 ${result.leaveDays} 天已排除；不含周末/休息日）`;
-            denominatorToTodayText.textContent = `截至今日分母 ${toToday.denominator} 天（含居家 ${toToday.homeDays} 天、未选 ${toToday.unselectedDays} 
-                天；请假 ${toToday.leaveDays} 天已排除）`;
+            请假 ${result.leaveDays} 天已排除；不含周末/休息日）`;
+            denominatorToTodayText.textContent = `截至今日分母 ${toToday.denominator} 天（含居家 ${toToday.homeDays} 天、未选 ${toToday.unselectedDays}
+            天；请假 ${toToday.leaveDays} 天已排除）`;
             formulaText.textContent = [
                 `整月出勤率 = 整月公司打卡天数 ÷ 整月应统计工作日 = ${result.officeDays} ÷ ${result.denominator} = ${ratePercentText}`,
                 `截至今日出勤率 = 截至今日公司打卡天数 ÷ 截至今日应统计工作日 = ${toToday.officeDays} ÷ ${toToday.denominator} = ${rateToTodayText}`,
@@ -850,7 +850,7 @@
             const monthHolidayCount = state.dayOverrides.filter((item) => item.isHoliday !== false).length;
             const monthWorkdayCount = state.dayOverrides.filter((item) => item.isHoliday === false).length;
             holidaySummary.textContent = `${monthValue.slice(0, 4)} 年休息日 ${state.holidayCountForYear} 天，补班日 ${state.workdayCountForYear} 天；
-                本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCount} 天。`;
+            本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCount} 天。`;
             updateSmartStrategyHint();
         }
 
@@ -878,8 +878,8 @@
             const strategy = smartStrategySelect ? smartStrategySelect.value : 'weekly-balanced';
             const includePast = includePastDates();
             // 智能排班不会覆盖手动选择，只会在当前日期范围内重新生成 bulk/smart 记录。
-            if (!(await confirmBulkAction(`将按⌈${selectedStrategyLabel()}⌋ 对 ${selectedMonthValue()} 中${scheduleScopeText()}进行智能排班；不会覆盖你手动选择的日期。是否继续？`,
-                {title: '确认智能排班', confirmText: '开始排班', tone: 'primary'}))) return;
+            if (!await confirmBulkAction(`将按⌈${selectedStrategyLabel()}⌋ 对 ${selectedMonthValue()} 中${scheduleScopeText()}进行智能排班；不会覆盖你手动选择的日期。是否继续？`,
+                {title: '确认智能排班', confirmText: '开始排班', tone: 'primary'})) return;
             smartScheduleBtn.disabled = true;
             holidaySummary.textContent = '正在智能分配公司打卡和居家办公…';
             try {
@@ -896,7 +896,7 @@
             }
         });
 
-        document.querySelectorAll('[data-bulk]').forEach(button => {
+        document.querySelectorAll('[data-bulk]').forEach((button) => {
             button.addEventListener('click', async () => {
                 const action = button.dataset.bulk;
                 // 清空是“手动保护”的例外，它回删除范围内所有的选择，包括手动选择。
@@ -1013,7 +1013,7 @@
             data.users.forEach((user) => {
                 const option = document.createElement('option');
                 option.value = String(user.id);
-                option.textContent = `${user.username} （${user.overrideCount} 条配置）`;
+                option.textContent = `${user.username}（${user.overrideCount} 条配置）`;
                 sourceUserSelect.appendChild(option);
             });
             copyHolidayBtn.disabled = data.users.length === 0;
@@ -1028,7 +1028,7 @@
                 header.textContent = month.label;
                 const grid = document.createElement('div');
                 grid.className = 'month-grid';
-                MONDAY_FIRST_LABELS.forEach(label => {
+                MONDAY_FIRST_LABELS.forEach((label) => {
                     const cell = document.createElement('span');
                     cell.className = 'month-weekday';
                     cell.textContent = label;
@@ -1069,7 +1069,7 @@
 
         function selectDay(day) {
             state.selected = Object.assign({}, day);
-            selectedDateLabel.textContent = `${day.date} - ${day.isWeekend ? '周末' : '工作日'}`;
+            selectedDateLabel.textContent = `${day.date} · ${day.isWeekend ? '周末' : '工作日'}`;
             dayTypeSelect.value = day.dayType || (day.isHoliday ? 'holiday' : day.isWorkdayOverride ? 'workday' : 'normal');
             dayNameInput.value = day.name || '';
             renderHolidayCalendar();
@@ -1092,7 +1092,7 @@
                 state.workdays = data.workdays || [];
                 holidayCount.textContent = state.holidays.length;
                 workdayCount.textContent = state.workdays.length;
-                holidayMeta.textContent = data.meta ? `${data.meta?.source} - ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
+                holidayMeta.textContent = data.meta ? `${data.meta?.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
                 holidayStatus.textContent = `同步完成：${state.holidays.length} 天节假日。`;
                 renderHolidayCalendar();
                 await loadSourceUsers();
@@ -1117,7 +1117,7 @@
                 state.workdays = data.workdays || [];
                 holidayCount.textContent = state.holidays.length;
                 workdayCount.textContent = state.workdays.length;
-                holidayMeta.textContent = data.meta ? `${data.meta?.source} - ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
+                holidayMeta.textContent = data.meta ? `${data.meta?.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
                 holidayStatus.textContent = `已同步所选用户配置，共 ${data.copied} 条。`;
                 renderHolidayCalendar();
             } finally {
@@ -1135,7 +1135,7 @@
                     date: state.selected.date,
                     dayType: dayTypeSelect.value,
                     name: dayNameInput.value.trim(),
-                })
+                }),
             });
             holidayStatus.textContent = `${state.selected.date} 已保存。`;
             await loadYear();
@@ -1162,8 +1162,8 @@
             {method: 'GET', path: '/api/attendance?month=2026-07', title: '读取月度出勤', description: '返回登记、节假日覆盖与后端权威 summary；summary 同时包含整月出勤率和截至今日出勤率。'},
             {method: 'PUT', path: '/api/attendance', title: '保存单日登记', description: 'status 可为 office/home/leave；传 null 表示清空。', body: {date: '2026-07-01', status: 'office'}},
             {method: 'POST', path: '/api/attendance/bulk', title: '批量登记', description: '默认只批量设置明天及之后的非手动选择工作日；includePast=true 时包含过去日期和今天。', body: {month: '2026-07', status: 'office', includePast: false}},
-            {method: 'POST', path: '/api/attendance/smart-schedule', title: '智能排班', description: '默认只排明天及之后；按所选星期组合会尽量满足每周目标公司打卡比例。', body: {month: '2026-07', strategy: 'recommended', includePast: false}},
-            {method: 'GET', path: '/api/holidays?year=2026', title: '读取年度节假日', description: '返回已休息日、补班日、覆盖规则和完整年度日历。'},
+            {method: 'POST', path: '/api/attendance/smart-schedule', title: '智能排班', description: '默认只排明天及之后；按所选星期组合尽量满足每周目标公司打卡比例。', body: {month: '2026-07', strategy: 'recommended', includePast: false}},
+            {method: 'GET', path: '/api/holidays?year=2026', title: '读取年度节假日', description: '返回休息日、补班日、覆盖规则和完整年度日历。'},
             {method: 'POST', path: '/api/holidays/sync', title: '同步官方节假日', description: '自动获取指定年份中国节假日与补班信息。', body: {year: 2026}},
             {method: 'PATCH', path: '/api/holidays', title: '调整单日类型', description: 'dayType 可为 normal/holiday/workday。', body: {date: '2026-07-01', dayType: 'holiday', name: '公司假期'}},
             {method: 'GET', path: '/api/holiday-source-users?year=2026', title: '可同步用户列表', description: '列出指定年份可作为节假日配置来源的其他用户。'},
@@ -1178,14 +1178,14 @@
             },
             {method: 'POST', path: '/api/seat-booking/seats', title: '获取外部座位列表', description: '登录外部平台并读取指定日期座位列表。', body: {bookingDate: '2026-07-10'}},
             {method: 'POST', path: '/api/seat-booking/book', title: '立即预约座位', description: '使用已保存配置立即提交座位预约。', body: {bookingDate: '2026-07-10', seatId: 'A01', seatName: 'A01'}},
-            {method: 'GET', path: '/api/seat-booking/scheduler', title: '座位预约调度状态', description: '查看 Flask 内置座位调度器的调度是否环境变量启动、是否运行以及最近一次检查结果。'},
-            {method: 'GET', path: '/api/admin/cleanup', title: '管理员清理策略。', description: '管理员读取数据清理开关、保留周期和调度器状态'},
-            {method: 'PUT', path: '/api/admin/cleanup', title: '更新清理策略。', description: '管理员读开启/关闭定期清理并调整保留月份。', body: {scheduledEnabled: true, attendanceRetentionMonths: 12, overtimeRetentionMonths: 12, seatBookingPlanRetentionMonths: 6, seatBookingRunRetentionMonths: 3}},
+            {method: 'GET', path: '/api/seat-booking/scheduler', title: '座位预约调度状态', description: '查看 Flask 内置座位预约调度器是否通过环境变量启用、是否运行以及最近一次检查结果。'},
+            {method: 'GET', path: '/api/admin/cleanup', title: '管理员清理策略', description: '管理员读取数据清理开关、保留周期和调度器状态。'},
+            {method: 'PUT', path: '/api/admin/cleanup', title: '更新清理策略', description: '管理员开启/关闭定期清理并调整保留月份。', body: {scheduledEnabled: true, attendanceRetentionMonths: 12, overtimeRetentionMonths: 12, seatBookingPlanRetentionMonths: 6, seatBookingRunRetentionMonths: 3}},
             {method: 'POST', path: '/api/admin/cleanup/run', title: '预览/执行清理', description: 'dryRun=true 仅预览；dryRun=false 执行清理。', body: {dryRun: true}},
             {method: 'GET', path: '/api/admin/users', title: '用户角色与页面权限', description: '管理员读取用户列表、角色和可访问页面。'},
             {method: 'PUT', path: '/api/admin/users/1', title: '更新用户权限', description: '管理员设置用户角色和可访问页面。', body: {role: 'user', accessiblePages: ['attendance', 'holidays', 'seat-booking']}},
             {method: 'PATCH', path: '/api/admin/users/1/status', title: '停用/启用用户', description: '管理员停用或启用用户；停用后用户无法登录，历史数据保留。', body: {isActive: false}},
-            {method: 'DELETE', path: '/api/admin/users/1', title: '删除用户', description: '管理员永久删除用户及业务数据；执行前建议备份 SQLite。', body: {}},
+            {method: 'DELETE', path: '/api/admin/users/1', title: '删除用户', description: '管理员永久删除用户及其业务数据；执行前建议备份 SQLite。', body: {}},
             {method: 'POST', path: '/api/logout', title: '退出登录', description: '结束当前登录会话。', body: {}},
         ];
 
@@ -1202,12 +1202,12 @@
 
         async function sendRequest(method, path, bodyText, output) {
             output.textContent = 'Sending…';
-            const options = {method: method || 'GET', headers: {'Content-Type': 'application/json'}};
+            const options = {method: method, headers: {'Content-Type': 'application/json'}};
             if (method !== 'GET' && bodyText.trim()) {
                 try {
                     options.body = JSON.stringify(JSON.parse(bodyText));
                 } catch (error) {
-                    output.textContent = `请求体不是合法的 JSON：${error.message}`;
+                    output.textContent = `请求体不是合法 JSON：${error.message}`;
                     return;
                 }
             } else if (method !== 'GET') {
@@ -1230,23 +1230,23 @@
 
         function renderEndpoints() {
             endpointList.innerHTML = '';
-            endpoints.forEach(endpoint => {
+            endpoints.forEach((endpoint) => {
                 const card = document.createElement('article');
                 card.className = 'endpoint-card';
                 card.innerHTML = `
-                <div class="endpoint-card__head">
-                  <span class="api-method">${endpoint.method}</span>
-                  <code>${endpoint.path}</code>
-                </div>
-                <h3>${endpoint.title}</h3>
-                <p>${endpoint.description}</p>
-                <textarea spellcheck="false" aria-label="${endpoint.title} 请求体">${endpoint.body ? formatJson(endpoint.body) : ''}</textarea>
-                <div class="endpoint-actions">
-                  <button type="button" data-action="send">发送</button>
-                  <button type="button" data-action="fill">填入自定义请求</button>
-                </div>
-                <pre class="api-response" aria-live="polite">尚未发送</pre>
-            `;
+            <div class="endpoint-card__head">
+              <span class="api-method">${endpoint.method}</span>
+              <code>${endpoint.path}</code>
+            </div>
+            <h3>${endpoint.title}</h3>
+            <p>${endpoint.description}</p>
+            <textarea spellcheck="false" aria-label="${endpoint.title} 请求体">${endpoint.body ? formatJson(endpoint.body) : ''}</textarea>
+            <div class="endpoint-actions">
+              <button type="button" data-action="send">发送</button>
+              <button type="button" data-action="fill">填入自定义请求</button>
+            </div>
+            <pre class="api-response" aria-live="polite">尚未发送</pre>
+        `;
                 const requestBody = card.querySelector('textarea');
                 const responseOutput = card.querySelector('.api-response');
                 card.querySelector('[data-action="send"]').addEventListener('click', () => sendRequest(endpoint.method, endpoint.path, requestBody.value, responseOutput));
@@ -1344,7 +1344,7 @@
 
         function firstBookingMonth(bookings) {
             const booking = (bookings || []).find((item) => item && item.bookingDate);
-            return booking ? String(booking.bookingDate?.slice(0, 7)) : '';
+            return booking ? String(booking.bookingDate).slice(0, 7) : '';
         }
 
         function closeSeatPicker() {
@@ -1367,7 +1367,7 @@
             for (let index = 0; index < 42; index += 1) {
                 const current = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
                 const iso = isoFromDate(current);
-                const monthValue = iso.slice(0, 7)
+                const monthValue = iso.slice(0, 7);
                 const cell = document.createElement('div');
                 cell.className = 'seat-calendar-cell';
                 cell.classList.toggle('has-picker', seatPickerVisible && iso === selectedBookingDate);
@@ -1383,7 +1383,7 @@
                 button.classList.toggle('past-booking', Boolean(bookedSeat) && pastDate);
                 button.classList.toggle('past-current-week-booking', pastCurrentWeekBooking);
                 button.disabled = pastDate;
-                button.title = pastCurrentWeekBooking ? '本周已过去的预约记录可取消，但不能重新预约' : '';
+                button.title = pastCurrentWeekBooking ? '本周已过去的预约记录可取消，但不能重新预约。' : '';
                 button.innerHTML = `<strong>${current.getDate()}</strong><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}</small>${bookedSeat ?
                     `<span class="seat-calendar-seat ${bookedSeat.status || 'pending'}">${escapeHtml(bookedSeat.seatName || bookedSeat.seatId)} · ${bookedSeat.status === 'success' ?
                         '成功' : '预约中'}</span>` : ''}`;
@@ -1391,7 +1391,7 @@
                     if (button.disabled) return;
                     if (monthValue !== calendarMonth) calendarMonth = monthValue;
                     selectBookingDate(iso, {loading: true});
-                    await fetchSeatsForSelectedDate()
+                    await fetchSeatsForSelectedDate();
                 });
                 cell.appendChild(button);
                 if (bookedSeat) {
@@ -1433,7 +1433,7 @@
             if (calendarSummary) {
                 const advanceDays = Number(advanceDaysInput.value || 0);
                 calendarSummary.textContent = selectedBookingDate
-                    ? `已选择 ${selectedBookingDate}；将在提前 ${advanceDays} 天的 ${(bookingTimeInput.value || '08:30')} 尝试预约。`
+                    ? `已选择 ${selectedBookingDate}；将在提前 ${advanceDays} 天的 ${bookingTimeInput.value || '08:30'} 尝试预约。`
                     : '请选择预约日期。';
             }
         }
@@ -1446,14 +1446,14 @@
                 advanceDays: Number(advanceDaysInput.value || 0),
                 enabled: enabledInput.checked,
             };
-            if (includePassword && passwordInput.value) payload.externalPassword = passwordInput.value;
+            if (includePassword || passwordInput.value) payload.externalPassword = passwordInput.value;
             return payload
         }
 
         function fillSettings(settings, options = {}) {
-            usernameInput.value = settings.externalUsername || "";
-            passwordInput.value = "";
-            passwordInput.placeholder = settings.hasPassword ? '已保存密码，留空表示不修改' : '请输入外部平台密码';
+            usernameInput.value = settings.externalUsername || '';
+            passwordInput.value = '';
+            passwordInput.placeholder = settings.hasPassword ? '已保存密码：留空表示不修改' : '请输入外部平台密码';
             selectedBookingDate = settings.bookingDate || todayPlus(3);
             if (!options.preservePicker) seatPickerVisible = false;
             bookingDateInput.value = selectedBookingDate;
@@ -1474,7 +1474,7 @@
             const enabledText = scheduler.enabled || scheduler.envEnabled ? '内置调度器已启用' : '内置调度器未启用';
             const runningText = scheduler.running ? '运行中' : '未运行';
             const intervalText = scheduler.intervalSeconds ? `每 ${scheduler.intervalSeconds} 秒检查一次` : '未配置检查间隔';
-            schedulerStatus.textContent = `${enabledText}，${runningText}；${intervalText}。${scheduler.lastMessage || ""}`;
+            schedulerStatus.textContent = `${enabledText}，${runningText}；${intervalText}。${scheduler.lastMessage || ''}`;
         }
 
         function filteredSeats() {
@@ -1485,12 +1485,12 @@
             });
         }
 
-        function renderSeats() { // 1783771351983
+        function renderSeats() {
             const seats = filteredSeats();
             seatList.innerHTML = '';
             if (seatListLoading) {
                 if (seatFilterSummary) seatFilterSummary.textContent = `正在加载 ${selectedBookingDate || ''} 的座位…`;
-                seatList.innerHTML = '<p class="empty-note">正在读取座位列表，请稍侯…</p>';
+                seatList.innerHTML = '<p class="empty-note">正在读取座位列表，请稍候…</p>';
                 return;
             }
             if (seatListError) {
@@ -1524,7 +1524,7 @@
                     });
                     calendarSeatPlans = data.plans || calendarSeatPlans;
                     renderCalendar();
-                    statusText.textContent = `${selectedBookingDate} 已确认预约座位： ${seat.name || seat.id}。`;
+                    statusText.textContent = `${selectedBookingDate} 已确认预约座位：${seat.name || seat.id}`;
                 });
                 card.querySelector('[data-action="direct"]').addEventListener('click', async () => {
                     if (!selectedBookingDate) return;
@@ -1582,7 +1582,7 @@
             try {
                 await refreshSeatBookingMonth();
             } catch (error) {
-                renderSchedulerStatus({lastMessage: `自动刷新失败： ${error.message}`});
+                renderSchedulerStatus({lastMessage: `自动刷新失败：${error.message}`});
             } finally {
                 seatBookingRefreshInFlight = false;
             }
@@ -1592,7 +1592,7 @@
             if (seatBookingRefreshTimer) window.clearInterval(seatBookingRefreshTimer);
             seatBookingRefreshTimer = window.setInterval(refreshSeatBookingSilently, SEAT_BOOKING_REFRESH_INTERVAL_MS);
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden) refreshSeatBookingSilently();
+                if (!document.hidden) refreshSeatBookingSilently();
             });
             window.addEventListener('pagehide', () => {
                 if (seatBookingRefreshTimer) window.clearInterval(seatBookingRefreshTimer);
@@ -1622,7 +1622,7 @@
             } catch (error) {
                 allSeats = [];
                 seatListError = error.message;
-                statusText.textContent = `获取座位失败: ${error.message}`;
+                statusText.textContent = `获取座位失败：${error.message}`;
             } finally {
                 seatPickerVisible = true;
                 seatListLoading = false;
@@ -1633,13 +1633,13 @@
 
         async function submitDirectBooking(bookingDate, seatId, seatName) {
             if (!isDirectBookingDate(bookingDate)) {
-                statusText.textContent = '直接预约只能选择明天至7天后的日期。';
+                statusText.textContent = '直接预约只能选择明天至 7 天后的日期。';
                 return;
             }
             statusText.textContent = `正在直接预约 ${bookingDate} 的座位…`;
             const data = await apiFetch('/api/seat-booking/book', {
                 method: 'POST',
-                body: JSON.stringify({date: bookingDate, seatId, seatName}),
+                body: JSON.stringify({bookingDate, seatId, seatName}),
             });
             const message = data.run ? data.run.message : '预约请求已提交。';
             calendarMonth = bookingDate.slice(0, 7);
@@ -1648,7 +1648,7 @@
                 await refreshSeatBookingMonth();
                 statusText.textContent = message;
             } catch (error) {
-                statusText.textContent = `${message}；刷新当前页面状态失败： ${error.message}`;
+                statusText.textContent = `${message}；刷新当前页面状态失败：${error.message}`;
             }
         }
 
@@ -1709,7 +1709,7 @@
                         renderRuns(data.runs || []);
                     }
                     renderCalendar();
-                    statusText.textContent = `同步完成：新增 ${data.synced || 0} 条，更新 ${data.updated || 0} 条。`;
+                    statusText.textContent = `同步完成：新增 ${data.synced || 0} 条，更新日历 ${data.updated || 0} 条。`;
                 } catch (error) {
                     statusText.textContent = `同步失败：${error.message}`;
                 } finally {

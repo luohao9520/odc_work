@@ -6,13 +6,13 @@
 
 ```text
 backend/app/
-├── main.py                # Flask app factory, blueprint registration, page/PWA routes
-├── core/                  # Configuration, database, crypto and other infrastructure
-├── shared/                # Shared utilities such as dates, calendars, proxy and HTTP helpers
-├── domain/                # Pure domain logic, e.g. attendance calculations
-├── modules/               # Business modules and Flask blueprints
-├── integrations/          # External system clients
-└── jobs/                  # Background jobs and schedulers
+├─ main.py            # Flask app factory, blueprint registration, page/PWA routes
+├─ core/              # Configuration, database, crypto and other infrastructure
+├─ shared/            # Shared utilities such as dates, calendars, proxy and HTTP helpers
+├─ domain/            # Pure domain logic, e.g. attendance calculations
+├─ modules/           # Business modules and Flask blueprints
+├─ integrations/      # External system clients
+└─ jobs/              # Background jobs and schedulers
 ```
 
 ## Import rules
@@ -21,7 +21,7 @@ backend/app/
 - Do not add new backend code outside `backend/app`.
 - Keep public HTTP routes stable: `/api/*`, `/*.html`, `/static/*`, `/manifest.webmanifest`, and `/service-worker.js`.
 
-Local checks
+## Local checks
 
 ```powershell
 Set-Location "C:\Users\45490415\Data\Code\Other\ODC"

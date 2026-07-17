@@ -30,7 +30,7 @@
         <div class="hero__copy">
             <p class="eyebrow">Office Attendance Planner</p>
             <h1 id="page-title">月度出勤率计算器</h1>
-            <p class="lede">按月列出工作日，选择“公司打卡 / 居家办公 / 请假”，自动判断当天是否达到出勤率；请假按休息日处理，不计入分母，也不计入公司打卡分子。登记数据会按登录用户保存。</p>
+            <p class="lede">按月列出工作日，选择“公司打卡 / 居家办公 / 请假”，自动判断当月是否达到目标出勤率；请假按休息日处理，不计入分母，也不计入公司打卡分子。登记数据会按登录用户保存。</p>
         </div>
         <div class="hero__badge" aria-label="达标规则">
             <span>达标线</span>
@@ -62,7 +62,7 @@
             </label>
         </div>
         <div class="field field--wide holiday-source-card">
-            <label>年度节假日</label>
+            <label>年度节假日库</label>
             <p id="holidaySummary" class="hint">正在加载节假日数据…</p>
             <p class="hint">如公司日历不同，请到“节假日调整”页面同步或修改。</p>
         </div>
@@ -72,7 +72,7 @@
     <section class="summary-grid" aria-live="polite">
         <article class="metric metric--status" id="statusCard">
             <span>达标状态</span>
-            <strong id="statusText">-</strong>
+            <strong id="statusText">—</strong>
             <small id="statusDetail">请选择月份</small>
         </article>
         <article class="metric">
@@ -102,22 +102,22 @@
             <div class="section-title">
                 <div>
                     <p class="eyebrow">Monthly Calendar</p>
-                    <h2 id="calendar-title">当前日期</h2>
+                    <h2 id="calendar-title">当月日期</h2>
                 </div>
                 <div class="bulk-actions" aria-label="批量操作">
                     <button type="button" data-bulk="office">工作日全设为公司</button>
                     <label class="smart-strategy-field" for="smartStrategySelect">
-                        <span class="label">排班方式</span>
+                        <span>排班方式</span>
                         <select id="smartStrategySelect" aria-describedby="smartStrategyHint">
                             <option value="recommended">智能推荐</option>
                             <option value="prefer-mon-tue-wed">周一二三优先</option>
                             <option value="prefer-tue-thu">周二三四优先</option>
-                            <option value="prefer-mon-wed-fri">周一三五优先</option>
-                            <option value="prefer-mon-tue-wed-fri">周一三五分散</option>
+                            <option value="prefer-wed-thu-fri">周三四五优先</option>
+                            <option value="prefer-mon-wed-fri">周一三五分散</option>
                         </select>
                     </label>
-                    <label class="compact-check" title="默认只调整明天及之后，勾选可重排整个月的非手动选择日期。">
-                        <input id="includePasToggle" type="checkbox"/>
+                    <label class="compact-check" title="默认只调整明天及之后，勾选后可重排整个月的非手动选择日期。">
+                        <input id="includePastToggle" type="checkbox"/>
                         <span>包含过去日期</span>
                     </label>
                     <button id="smartScheduleBtn" type="button">智能排班</button>
@@ -137,18 +137,18 @@
             <ol>
                 <li>分母 = 应统计工作日 = 普通工作日 - 调休放假日 + 周末补班日 - 请假日。</li>
                 <li>公司打卡、居家办公、未选择的可统计工作日属于分母；请假按休息日处理，不计入分母。</li>
-                <li>分子 = 公司打卡天数；请假和居家办公不计入分子。</li>
+                <li>分子 = 公司打卡天数；请假和居家办公都不计入分子。</li>
                 <li>整月出勤率 = <code>整月公司打卡天数 ÷ 整月应统计工作日</code>。</li>
                 <li>截至今日出勤率 = <code>截至今日公司打卡天数 ÷ 截至今日应统计工作日</code>。</li>
-                <li>最低公司打卡天数 = <code>当cell(应统计工作日 × 目标出勤率)</code></li>
+                <li>最低公司打卡天数 = <code>cell(应统计工作日 × 目标出勤率)</code>。</li>
             </ol>
             <div class="legend" aria-label="状态图例">
                 <span><i class="dot office"></i>公司打卡</span>
                 <span><i class="dot home"></i>居家办公</span>
                 <span><i class="dot leave"></i>请假</span>
-                <span><i class="dot holiday"></i>周末/节假日</span>
+                <span><i class="dot locked"></i>周末/节假日</span>
             </div>
-            <div class="formula" id="formulaText">-</div>
+            <div class="formula" id="formulaText">—</div>
         </aside>
     </section>
 </main>
@@ -160,13 +160,13 @@
             <p class="eyebrow">Quick Guide</p>
             <h2 id="guideTitle">系统使用指南</h2>
         </div>
-        <button id="closeGuideBtn" type="button" aria-label="关闭系统使用指南">✕</button>
+        <button id="closeGuideBtn" type="button" aria-label="关闭系统使用指南">×</button>
     </div>
     <ol class="guide-list">
-        <li><strong>目标达标线</strong>：直接在页面顶部徽章内修改目标出勤率，保存后会影响所有月份计算。</li>
-        <li><strong>手动选择</strong>：你在月度日历里手动点选的日期不会被”智能排班“或”工作日全设为公司“覅该</li>
-        <li><strong>清空本月选择</strong>：会按”包含过去日期“开关决定清空范围，并清空范围内的手动选择</li>
-        <li><strong>智能推荐排班</strong>：默认只调整明天及之后；今天在日历中手动确认，勾选“包含获取日期”才会重排整月</li>
+        <li><strong>达标线</strong>：直接在页面顶部徽章内修改目标出勤率，保存后会影响所有月份计算。</li>
+        <li><strong>手动选择</strong>：你在月度日历里手动点选的日期不会被“智能排班”或“工作日全设为公司”覆盖，</li>
+        <li><strong>清空本月选择</strong>：会按“包含过去日期”开关决定清空范围，并会清空范围内的手动选择，</li>
+        <li><strong>智能排班</strong>：默认只调整明天及之后；今天请在日历中手动确认，勾选“包含过去日期”才会重排整月，</li>
         <li><strong>节假日</strong>：节假日同步和公司日历差异，请在“节假日调整”页面处理。</li>
     </ol>
 </section>
@@ -179,9 +179,9 @@
                 <p class="eyebrow">Confirm Action</p>
                 <h2 id="confirmDialogTitle">确认操作</h2>
             </div>
-            <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">✕</button>
+            <button id="confirmDialogClose" class="confirm-modal__close" type="button" aria-label="取消并关闭确认弹窗">×</button>
         </div>
-        <p id="confirmDialogMessage" class="confirm-modal__message">-</p>
+        <p id="confirmDialogMessage" class="confirm-modal__message">—</p>
         <div class="confirm-modal__actions">
             <button id="confirmDialogCancel" type="button">取消</button>
             <button id="confirmDialogConfirm" class="danger-button" type="button">确认继续</button>
