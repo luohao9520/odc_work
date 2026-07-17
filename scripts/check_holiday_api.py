@@ -39,7 +39,7 @@ def main() -> int:  # Ethan Luo
         for scheme, proxy in proxies.items():
             print(f" {scheme}: {mask_proxy(proxy)}")
     else:
-        print("当前 Python 未识别到代理配置。")
+        print("当前 Python 未识别到显式代理配置。")
 
     holidays, source = fetch_china_holidays(args.year)
     print(f"获取结果：{source}，共 {len(holidays)} 条。")

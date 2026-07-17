@@ -12,7 +12,7 @@ frontend/
 
 ## Runtime paths
 
-Even though files live under frontend/, the browser-facing URLs are kept stable:
+Even though files live under `frontend/`, the browser-facing URLs are kept stable:
 
 - HTML pages: `/`, `/index.html`, `/holidays.html`, `/seat-booking.html`, `/login.html`, `/api-docs.html`, `/offline.html`
 - Static assets: `/static/*`
@@ -23,7 +23,7 @@ Even though files live under frontend/, the browser-facing URLs are kept stable:
 ## Development notes
 
 - `frontend/static/js/app.js` exposes CommonJS exports for `tests/test_frontend_logic.js`; keep those exports when refactoring.
-- `frontend/templates and frontend/static` are the only frontend source directories.
+- `frontend/templates` and `frontend/static` are the only frontend source directories.
 - If a future React/Vue/Vite migration is introduced, preserve the existing API route contract or add an explicit API base URL and CORS/session strategy.
 
 ## Local checks

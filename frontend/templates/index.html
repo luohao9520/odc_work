@@ -140,7 +140,7 @@
                 <li>分子 = 公司打卡天数；请假和居家办公都不计入分子。</li>
                 <li>整月出勤率 = <code>整月公司打卡天数 ÷ 整月应统计工作日</code>。</li>
                 <li>截至今日出勤率 = <code>截至今日公司打卡天数 ÷ 截至今日应统计工作日</code>。</li>
-                <li>最低公司打卡天数 = <code>cell(应统计工作日 × 目标出勤率)</code>。</li>
+                <li>最低公司打卡天数 = <code>ceil(应统计工作日 × 目标出勤率)</code>。</li>
             </ol>
             <div class="legend" aria-label="状态图例">
                 <span><i class="dot office"></i>公司打卡</span>
@@ -163,10 +163,10 @@
         <button id="closeGuideBtn" type="button" aria-label="关闭系统使用指南">×</button>
     </div>
     <ol class="guide-list">
-        <li><strong>达标线</strong>：直接在页面顶部徽章内修改目标出勤率，保存后会影响所有月份计算。</li>
-        <li><strong>手动选择</strong>：你在月度日历里手动点选的日期不会被“智能排班”或“工作日全设为公司”覆盖，</li>
-        <li><strong>清空本月选择</strong>：会按“包含过去日期”开关决定清空范围，并会清空范围内的手动选择，</li>
-        <li><strong>智能排班</strong>：默认只调整明天及之后；今天请在日历中手动确认，勾选“包含过去日期”才会重排整月，</li>
+        <li><strong>达标线</strong>：直接在顶部徽章内修改目标出勤率，保存后会影响所有月份计算。</li>
+        <li><strong>手动选择</strong>：你在日历里手动点选的日期不会被“智能排班”或“工作日全设为公司”覆盖。</li>
+        <li><strong>清空本月选择</strong>：会按“包含过去日期”开关决定清空范围，并会清空范围内的手动选择。</li>
+        <li><strong>智能排班</strong>：默认只调整明天及之后；今天请在日历中手动确认，勾选“包含过去日期”才会重排整月。</li>
         <li><strong>节假日</strong>：节假日同步和公司日历差异，请在“节假日调整”页面处理。</li>
     </ol>
 </section>

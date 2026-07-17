@@ -174,10 +174,7 @@
 
     function mapNagerHolidayResponse(payload) {
         if (!Array.isArray(payload)) return [];
-        return normalizeHolidayItems(payload.map((item) => ({
-            date: item && item.date, name: normalizeHolidayName
-            (item && (item.localName || item.name), true), isHoliday: true
-        })));
+        return normalizeHolidayItems(payload.map((item) => ({date: item && item.date, name: normalizeHolidayName(item && (item.localName || item.name), true), isHoliday: true})));
     }
 
     async function fetchChinaHolidays(year, fetchImpl) {
@@ -508,12 +505,11 @@
                 toggleButton.addEventListener('click', async () => {
                     const nextActive = !user.isActive;
                     const actionText = nextActive ? '启用' : '停用';
-                    const confirmed = nextActive || await confirmAction(`停用 ${user.username} 后，该用户将无法登录，已登录会话也会失效；历史数据会保留。确定继续吗？`,
-                        {
-                            title: `确认${actionText}用户`,
-                            confirmText: `确认${actionText}`,
-                            tone: 'danger',
-                        });
+                    const confirmed = nextActive || await confirmAction(`停用 ${user.username} 后，该用户将无法登录，已登录会话也会失效；历史数据会保留。确定继续吗？`, {
+                        title: `确认${actionText}用户`,
+                        confirmText: `确认${actionText}`,
+                        tone: 'danger',
+                    });
                     if (!confirmed) return;
                     toggleButton.disabled = true;
                     userAccessStatus.textContent = `正在${actionText} ${user.username}…`;
@@ -532,12 +528,11 @@
                     }
                 });
                 deleteButton.addEventListener('click', async () => {
-                    const confirmed = await confirmAction(`删除 ${user.username} 会永久删除该用户及其出勤、节假日、座位预约等所有业务数据。建议先备份数据库。确定继续吗？`,
-                        {
-                            title: '删除用户及其数据',
-                            confirmText: '确认删除',
-                            tone: 'danger',
-                        });
+                    const confirmed = await confirmAction(`删除 ${user.username} 会永久删除该用户及其出勤、节假日、座位预约等所有业务数据。建议先备份数据库。确定继续吗？`, {
+                        title: '删除用户及其数据',
+                        confirmText: '确认删除',
+                        tone: 'danger',
+                    });
                     if (!confirmed) return;
                     deleteButton.disabled = true;
                     userAccessStatus.textContent = `正在删除 ${user.username}…`;
@@ -653,10 +648,7 @@
         const denominatorToTodayText = document.getElementById('denominatorToTodayText');
         const formulaText = document.getElementById('formulaText');
 
-        const state = {
-            month: currentMonthValue(), targetRate: 60, selections: {}, summary: null, dayOverrides: [],
-            holidayCountForYear: 0, workdayCountForYear: 0, smartSchedule: null, seatBookings: {}
-        };
+        const state = {month: currentMonthValue(), targetRate: 60, selections: {}, summary: null, dayOverrides: [], holidayCountForYear: 0, workdayCountForYear: 0, smartSchedule: null, seatBookings: {}};
 
         function selectedMonthValue() {
             return `${attendanceYearSelect.value}-${attendanceMonthSelect.value}`;
@@ -699,7 +691,7 @@
         function scheduleScopeText() {
             // 这里的文案必须雨后端 `filter_adjustable_dates` 保持一致
             // 未勾选表示严格的明天及之后，已勾选表示整个月
-            return includePastDates() ? '整个月非手动选择日期' : '明天及之后的非手动选择日期'
+            return includePastDates() ? '整个月非手动选择日期' : '明天及之后的非手动选择日期';
         }
 
         function selectedStrategyLabel() {
@@ -829,18 +821,13 @@
             const ratePercentText = `${Math.round(result.attendanceRate * 1000) / 10}%`;
             // `summary.toToday` 与整月出勤率使用同一公式，但会从分母中移除未来日期
             // 这样用户查看进度时，不会被未来未选择工作日拉低指标
-            const toToday = result.toToday || {
-                denominator: 0, officeDays: 0, homeDays: 0, leaveDays: 0, unselectedDays: 0, attendanceRate: 0,
-                requiredOfficeDays: 0
-            };
+            const toToday = result.toToday || {denominator: 0, officeDays: 0, homeDays: 0, leaveDays: 0, unselectedDays: 0, attendanceRate: 0, requiredOfficeDays: 0};
             const rateToTodayText = `${Math.round(toToday.attendanceRate * 1000) / 10}%`;
             const targetRate = Number(state.targetRate) || 0;
             attendanceRate.textContent = ratePercentText;
             attendanceRateToToday.textContent = rateToTodayText;
-            denominatorText.textContent = `分母 ${result.denominator} 天（含居家 ${result.homeDays} 天、未选 ${result.unselectedDays} 天；
-            请假 ${result.leaveDays} 天已排除；不含周末/休息日）`;
-            denominatorToTodayText.textContent = `截至今日分母 ${toToday.denominator} 天（含居家 ${toToday.homeDays} 天、未选 ${toToday.unselectedDays}
-            天；请假 ${toToday.leaveDays} 天已排除）`;
+            denominatorText.textContent = `分母 ${result.denominator} 天（含居家 ${result.homeDays} 天、未选 ${result.unselectedDays} 天；请假 ${result.leaveDays} 天已排除；不含周末/休息日）`;
+            denominatorToTodayText.textContent = `截至今日分母 ${toToday.denominator} 天（含居家 ${toToday.homeDays} 天、未选 ${toToday.unselectedDays} 天；请假 ${toToday.leaveDays} 天已排除）`;
             formulaText.textContent = [
                 `整月出勤率 = 整月公司打卡天数 ÷ 整月应统计工作日 = ${result.officeDays} ÷ ${result.denominator} = ${ratePercentText}`,
                 `截至今日出勤率 = 截至今日公司打卡天数 ÷ 截至今日应统计工作日 = ${toToday.officeDays} ÷ ${toToday.denominator} = ${rateToTodayText}`,
@@ -849,8 +836,7 @@
             ].join('\n');
             const monthHolidayCount = state.dayOverrides.filter((item) => item.isHoliday !== false).length;
             const monthWorkdayCount = state.dayOverrides.filter((item) => item.isHoliday === false).length;
-            holidaySummary.textContent = `${monthValue.slice(0, 4)} 年休息日 ${state.holidayCountForYear} 天，补班日 ${state.workdayCountForYear} 天；
-            本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCount} 天。`;
+            holidaySummary.textContent = `${monthValue.slice(0, 4)} 年休息日 ${state.holidayCountForYear} 天，补班日 ${state.workdayCountForYear} 天；本月休息 ${monthHolidayCount} 天，补班 ${monthWorkdayCount} 天。`;
             updateSmartStrategyHint();
         }
 
@@ -878,8 +864,7 @@
             const strategy = smartStrategySelect ? smartStrategySelect.value : 'weekly-balanced';
             const includePast = includePastDates();
             // 智能排班不会覆盖手动选择，只会在当前日期范围内重新生成 bulk/smart 记录。
-            if (!await confirmBulkAction(`将按⌈${selectedStrategyLabel()}⌋ 对 ${selectedMonthValue()} 中${scheduleScopeText()}进行智能排班；不会覆盖你手动选择的日期。是否继续？`,
-                {title: '确认智能排班', confirmText: '开始排班', tone: 'primary'})) return;
+            if (!await confirmBulkAction(`将按⌈${selectedStrategyLabel()}⌋ 对 ${selectedMonthValue()} 中${scheduleScopeText()}进行智能排班；不会覆盖你手动选择的日期。是否继续？`, {title: '确认智能排班', confirmText: '开始排班', tone: 'primary'})) return;
             smartScheduleBtn.disabled = true;
             holidaySummary.textContent = '正在智能分配公司打卡和居家办公…';
             try {
@@ -904,10 +889,7 @@
                 const message = action === 'clear'
                     ? `将清空 ${selectedMonthValue()} 中${scheduleScopeText()}的登记，包括手动选择。是否继续？`
                     : `将把 ${selectedMonthValue()} 中${scheduleScopeText()}设为公司打卡；不会覆盖你手动选择的日期。是否继续？`;
-                if (!await confirmBulkAction(message, {
-                    title: action === 'clear' ? '确认清空选择' : '确认批量设置', confirmText: action === 'clear' ? '确认清空' : '确认设置',
-                    tone: action === 'clear' ? 'danger' : 'primary'
-                })) return;
+                if (!await confirmBulkAction(message, {title: action === 'clear' ? '确认清空选择' : '确认批量设置', confirmText: action === 'clear' ? '确认清空' : '确认设置', tone: action === 'clear' ? 'danger' : 'primary'})) return;
                 await apiFetch('/api/attendance/bulk', {
                     method: 'POST',
                     body: JSON.stringify({month: selectedMonthValue(), status: action === 'clear' ? null : action, includePast: includePastDates()}),
@@ -1092,7 +1074,7 @@
                 state.workdays = data.workdays || [];
                 holidayCount.textContent = state.holidays.length;
                 workdayCount.textContent = state.workdays.length;
-                holidayMeta.textContent = data.meta ? `${data.meta?.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
+                holidayMeta.textContent = data.meta ? `${data.meta.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
                 holidayStatus.textContent = `同步完成：${state.holidays.length} 天节假日。`;
                 renderHolidayCalendar();
                 await loadSourceUsers();
@@ -1117,7 +1099,7 @@
                 state.workdays = data.workdays || [];
                 holidayCount.textContent = state.holidays.length;
                 workdayCount.textContent = state.workdays.length;
-                holidayMeta.textContent = data.meta ? `${data.meta?.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
+                holidayMeta.textContent = data.meta ? `${data.meta.source} · ${new Date(data.meta.updatedAt).toLocaleString('zh-CN')}` : '已同步';
                 holidayStatus.textContent = `已同步所选用户配置，共 ${data.copied} 条。`;
                 renderHolidayCalendar();
             } finally {
@@ -1178,7 +1160,7 @@
             },
             {method: 'POST', path: '/api/seat-booking/seats', title: '获取外部座位列表', description: '登录外部平台并读取指定日期座位列表。', body: {bookingDate: '2026-07-10'}},
             {method: 'POST', path: '/api/seat-booking/book', title: '立即预约座位', description: '使用已保存配置立即提交座位预约。', body: {bookingDate: '2026-07-10', seatId: 'A01', seatName: 'A01'}},
-            {method: 'GET', path: '/api/seat-booking/scheduler', title: '座位预约调度状态', description: '查看 Flask 内置座位预约调度器是否通过环境变量启用、是否运行以及最近一次检查结果。'},
+            {method: 'GET', path: '/api/seat-booking/scheduler', title: '座位预约调度器状态', description: '查看 Flask 内置座位预约调度器是否通过环境变量启用、是否运行以及最近一次检查结果。'},
             {method: 'GET', path: '/api/admin/cleanup', title: '管理员清理策略', description: '管理员读取数据清理开关、保留周期和调度器状态。'},
             {method: 'PUT', path: '/api/admin/cleanup', title: '更新清理策略', description: '管理员开启/关闭定期清理并调整保留月份。', body: {scheduledEnabled: true, attendanceRetentionMonths: 12, overtimeRetentionMonths: 12, seatBookingPlanRetentionMonths: 6, seatBookingRunRetentionMonths: 3}},
             {method: 'POST', path: '/api/admin/cleanup/run', title: '预览/执行清理', description: 'dryRun=true 仅预览；dryRun=false 执行清理。', body: {dryRun: true}},
@@ -1202,7 +1184,7 @@
 
         async function sendRequest(method, path, bodyText, output) {
             output.textContent = 'Sending…';
-            const options = {method: method, headers: {'Content-Type': 'application/json'}};
+            const options = {method, headers: {'Content-Type': 'application/json'}};
             if (method !== 'GET' && bodyText.trim()) {
                 try {
                     options.body = JSON.stringify(JSON.parse(bodyText));
@@ -1384,9 +1366,7 @@
                 button.classList.toggle('past-current-week-booking', pastCurrentWeekBooking);
                 button.disabled = pastDate;
                 button.title = pastCurrentWeekBooking ? '本周已过去的预约记录可取消，但不能重新预约。' : '';
-                button.innerHTML = `<strong>${current.getDate()}</strong><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}</small>${bookedSeat ?
-                    `<span class="seat-calendar-seat ${bookedSeat.status || 'pending'}">${escapeHtml(bookedSeat.seatName || bookedSeat.seatId)} · ${bookedSeat.status === 'success' ?
-                        '成功' : '预约中'}</span>` : ''}`;
+                button.innerHTML = `<strong>${current.getDate()}</strong><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}</small>${bookedSeat ? `<span class="seat-calendar-seat ${bookedSeat.status || 'pending'}">${escapeHtml(bookedSeat.seatName || bookedSeat.seatId)} · ${bookedSeat.status === 'success' ? '成功' : '预约中'}</span>` : ''}`;
                 button.addEventListener('click', async () => {
                     if (button.disabled) return;
                     if (monthValue !== calendarMonth) calendarMonth = monthValue;
@@ -1447,13 +1427,13 @@
                 enabled: enabledInput.checked,
             };
             if (includePassword || passwordInput.value) payload.externalPassword = passwordInput.value;
-            return payload
+            return payload;
         }
 
         function fillSettings(settings, options = {}) {
             usernameInput.value = settings.externalUsername || '';
             passwordInput.value = '';
-            passwordInput.placeholder = settings.hasPassword ? '已保存密码：留空表示不修改' : '请输入外部平台密码';
+            passwordInput.placeholder = settings.hasPassword ? '已保存密码；留空表示不修改' : '请输入外部平台密码';
             selectedBookingDate = settings.bookingDate || todayPlus(3);
             if (!options.preservePicker) seatPickerVisible = false;
             bookingDateInput.value = selectedBookingDate;

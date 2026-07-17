@@ -24,14 +24,14 @@ ODC/
 ```
 
 
-# 设计原则
+## 设计原则
 
 - `backend/app` 是后端唯一主实现；`run.py`、脚本和测试都应 import `backend.app'`。
 - 后端与前端都有只一份源文件位置，避免双份源文件冲突。
 - 前端资源以 `frontend/templates` 和 `frontend/static` 为准；Flask 仍对外提供 `/static/*`、`/*.html`、`/manifest.webmanifest` 与 `/service-worker.js`，所以浏览器访问路径保持不变。
 - 业务逻辑按 `core`、`shared`、`domain`、`modules`、`integrations`、`jobs` 拆分，降低 Blueprint 与基础设施耦合。
 - SQLite 数据放在 `instance/attendance.sqlite3`，便于备份和忽略。
-- 真实代理配置放在 `instance/proxy.json`，该文件被 `.gitignore` 忽略；示例见 `/instance/proxy.example.json`。
+- 真实代理配置放在 `instance/proxy.json`，该文件被 `.gitignore` 忽略；示例见 `instance/proxy.example.json`。
 - 日期计算和节假日获取放在 `backend/app/shared/calendar_utils.py`，便于单元测试。
 - 出勤统计和公式放在 `backend/app/domain/attendance/calculator.py`，由后端 API 返回权威 `summary`，前端只展示结果。
 - PWA 的 `manifest.webmanifest` 放在 `frontend/static/`；`service-worker.js` 由 Flask 以根路径 `/service-worker.js` 提供，确保作用域覆盖整个应用。
