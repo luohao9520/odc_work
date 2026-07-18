@@ -231,6 +231,79 @@ sudo systemctl restart odc-attendance
 - 系统管理：<http://127.0.0.1:5000/admin.html>
 - 接口文档/测试：<http://127.0.0.1:5000/api-docs.html>
 
+#### Docker 部署
+
+项目提供了 `Dockerfile` 和 `docker-compose.yml`，也支持纯 `docker run` 方式部署。
+
+**构建镜像**
+
+```bash
+docker build -t odc-work:latest .
+```
+
+**启动容器**
+
+```bash
+docker run -d \
+  --name odc-work \
+  -p 5000:5000 \
+  -v /root/service/odc_work/instance:/app/instance \
+  -e ATTENDANCE_SECRET_KEY="qwertyuiop" \
+  --restart unless-stopped \
+  odc-work:latest
+```
+
+> `-v /root/service/odc_work/instance:/app/instance` 将 SQLite 数据库持久化到宿主机，容器删除重建不会丢失数据。
+> `ATTENDANCE_SECRET_KEY` 生产环境请替换为强随机密钥，生成方式见上文。
+
+**更新镜像**
+
+代码更新后，重新构建镜像并替换容器，数据不受影响：
+
+```bash
+# 1. 构建新镜像
+docker build -t odc-work:latest .
+
+# 2. 导出镜像（如需迁移到其他平台）
+docker save odc-work:latest -o odc-work.tar
+
+# 3. 停旧容器、删容器（不删数据）
+docker stop odc-work
+docker rm odc-work
+
+# 4. 用新镜像启动（挂载路径不变，数据完好）
+docker run -d \
+  --name odc-work \
+  -p 5000:5000 \
+  -v /root/service/odc_work/instance:/app/instance \
+  -e ATTENDANCE_SECRET_KEY="qwertyuiop" \
+  --restart unless-stopped \
+  odc-work:latest
+```
+
+**迁移到其他平台**
+
+```bash
+# 源机器：导出镜像
+docker save odc-work:latest -o odc-work.tar
+
+# 将 odc-work.tar 和宿主机 instance/ 目录拷贝到目标机器
+
+# 目标机器：加载镜像
+docker load -i odc-work.tar
+
+# 启动容器（挂载拷贝过来的 instance/ 目录）
+docker run -d \
+  --name odc-work \
+  -p 5000:5000 \
+  -v /root/service/odc_work/instance:/app/instance \
+  -e ATTENDANCE_SECRET_KEY="qwertyuiop" \
+  --restart unless-stopped \
+  odc-work:latest
+```
+
+> 注意：`.dockerignore` 已排除 `instance/`，SQLite 数据库不会打包进镜像。运行时通过 `-v` 挂载宿主机目录实现数据持久化。
+
 ## 系统管理
 
 系统管理页面仅管理员可访问。初始化或注册用户名为 `luohao` 的账号会自动成为管理员。
