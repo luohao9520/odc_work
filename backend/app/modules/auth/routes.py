@@ -171,6 +171,27 @@ def logout():
     return jsonify({"ok": True})
 
 
+@auth_bp.post("/change-password")
+@login_required
+def change_password():
+    payload = request.get_json(silent=True) or {}
+    old_password = str(payload.get("oldPassword", ""))
+    new_password = str(payload.get("newPassword", ""))
+    if not old_password:
+        return jsonify({"error": "请输入原密码"}), 400
+    if len(new_password) < 6:
+        return jsonify({"error": "新密码至少 6 个字符"}), 400
+    row = get_db().execute("SELECT password_hash FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    if not row or not check_password_hash(row["password_hash"], old_password):
+        return jsonify({"error": "原密码不正确"}), 401
+    get_db().execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (generate_password_hash(new_password), session["user_id"]),
+    )
+    get_db().commit()
+    return jsonify({"ok": True})
+
+
 @auth_bp.get("/me")
 @login_required
 def me():

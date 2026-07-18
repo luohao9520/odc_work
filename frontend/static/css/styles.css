@@ -1331,6 +1331,46 @@ button:disabled {
     min-width: 112px;
 }
 
+.change-password-form {
+    padding: 0 28px 28px;
+}
+
+.change-password-form .field {
+    margin-bottom: 16px;
+}
+
+.change-password-form .field label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+
+.change-password-form .field input {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    background: rgba(255, 250, 240, 0.62);
+    font-family: var(--font-body);
+}
+
+.change-password-form .field input:focus {
+    outline: none;
+    border-color: var(--office);
+    box-shadow: 0 0 0 3px var(--office-soft);
+}
+
+.change-password-form .hint {
+    margin: 0 0 16px;
+    padding: 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
 @keyframes fade-in {
     from {
         opacity: 0;
@@ -1795,6 +1835,10 @@ button:disabled {
         width: 100%;
     }
 
+    .change-password-form {
+        padding: 0 14px 18px;
+    }
+
     .weekday-row, .calendar-grid {
         grid-template-columns: 1fr;
     }
@@ -1863,4 +1907,3 @@ button:disabled {
         grid-template-columns: 1fr;
     }
 }
-

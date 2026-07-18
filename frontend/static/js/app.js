@@ -256,12 +256,109 @@
                 await apiFetch('/api/logout', {method: 'POST', body: '{}'});
                 window.location.href = './login.html';
             });
+            const changePasswordBtn = document.getElementById('changePasswordBtn');
+            if (changePasswordBtn) {
+                changePasswordBtn.addEventListener('click', () => {
+                    openChangePasswordDialog();
+                });
+            }
         }
         return data.user;
     }
 
     let sharedConfirmResolve = null;
     let sharedConfirmTrigger = null;
+    let sharedChangePasswordResolve = null;
+
+    function ensureChangePasswordDialog() {
+        let dialog = document.getElementById('changePasswordDialog');
+        if (dialog) return dialog;
+        dialog = document.createElement('div');
+        dialog.id = 'changePasswordDialog';
+        dialog.className = 'confirm-overlay hidden';
+        dialog.setAttribute('role', 'presentation');
+        dialog.innerHTML = `
+      <section class="confirm-modal change-password-modal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+        <div class="confirm-modal__halo" aria-hidden="true"></div>
+        <div class="confirm-modal__head">
+          <div>
+            <p class="eyebrow">Account Security</p>
+            <h2 id="changePasswordTitle">修改密码</h2>
+          </div>
+          <button id="changePasswordClose" class="confirm-modal__close" type="button" aria-label="取消并关闭修改密码弹窗">&times;</button>
+        </div>
+        <form id="changePasswordForm" class="change-password-form">
+          <div class="field">
+            <label for="oldPasswordInput">原密码</label>
+            <input id="oldPasswordInput" type="password" autocomplete="current-password" minlength="1" required/>
+          </div>
+          <div class="field">
+            <label for="newPasswordInput">新密码</label>
+            <input id="newPasswordInput" type="password" autocomplete="new-password" minlength="6" required/>
+          </div>
+          <p id="changePasswordMessage" class="hint"></p>
+          <div class="confirm-modal__actions">
+            <button id="changePasswordCancel" type="button">取消</button>
+            <button id="changePasswordConfirm" class="primary-button" type="submit">确认修改</button>
+          </div>
+        </form>
+      </section>
+    `;
+        document.body.appendChild(dialog);
+
+        const closeDialog = () => {
+            dialog.classList.add('hidden');
+            if (sharedChangePasswordResolve) {
+                sharedChangePasswordResolve(false);
+                sharedChangePasswordResolve = null;
+            }
+        };
+
+        dialog.querySelector('#changePasswordCancel').addEventListener('click', closeDialog);
+        dialog.querySelector('#changePasswordClose').addEventListener('click', closeDialog);
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) closeDialog();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (dialog.classList.contains('hidden')) return;
+            if (event.key === 'Escape') closeDialog();
+        });
+
+        const form = dialog.querySelector('#changePasswordForm');
+        const message = dialog.querySelector('#changePasswordMessage');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const oldPassword = dialog.querySelector('#oldPasswordInput').value;
+            const newPassword = dialog.querySelector('#newPasswordInput').value;
+            message.textContent = '正在修改密码…';
+            try {
+                await apiFetch('/api/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({oldPassword, newPassword}),
+                });
+                message.textContent = '密码修改成功。';
+                dialog.querySelector('#oldPasswordInput').value = '';
+                dialog.querySelector('#newPasswordInput').value = '';
+                setTimeout(() => {
+                    closeDialog();
+                    message.textContent = '';
+                }, 1500);
+            } catch (error) {
+                message.textContent = error.message;
+            }
+        });
+
+        return dialog;
+    }
+
+    function openChangePasswordDialog() {
+        const dialog = ensureChangePasswordDialog();
+        dialog.querySelector('#oldPasswordInput').value = '';
+        dialog.querySelector('#newPasswordInput').value = '';
+        dialog.querySelector('#changePasswordMessage').textContent = '';
+        dialog.classList.remove('hidden');
+        dialog.querySelector('#oldPasswordInput').focus();
+    }
 
     function ensureConfirmDialog() {
         let dialog = document.getElementById('confirmDialog');
@@ -1740,4 +1837,3 @@
         });
     }
 })(typeof window !== 'undefined' ? window : globalThis);
-
