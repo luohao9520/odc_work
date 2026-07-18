@@ -1,0 +1,40 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Documentation
+*.md
+docs/
+
+# Tests (production image 不需要)
+tests/
+
+# Graphify output
+graphify-out/
+
+# Instance data (通过 volume 挂载，不打包进镜像)
+instance/*.sqlite3
+instance/proxy.json
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml

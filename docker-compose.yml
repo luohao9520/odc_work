@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  odc:
+    build: .
+    image: odc-attendance:latest
+    container_name: odc-attendance
+    ports:
+      - "5000:5000"
+    volumes:
+      # 持久化 SQLite 数据库和代理配置
+      - ./instance:/app/instance
+    environment:
+      - ATTENDANCE_SECRET_KEY=${ATTENDANCE_SECRET_KEY:-change-me-to-a-random-secret}
+      # 可选：开启座位预约调度器
+      # - SEAT_BOOKING_SCHEDULER_ENABLED=true
+      # 可选：开启数据清理调度器
+      # - DATA_CLEANUP_SCHEDULER_ENABLED=true
+      # 可选：代理配置
+      # - ATTENDANCE_HTTP_PROXY=
+      # - ATTENDANCE_HTTPS_PROXY=
+    restart: unless-stopped
