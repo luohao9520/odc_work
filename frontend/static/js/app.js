@@ -1515,8 +1515,16 @@
             }
             if (calendarSummary) {
                 const advanceDays = Number(advanceDaysInput.value || 0);
+                let advanceDateStr = '';
+                if (selectedBookingDate && advanceDays > 0) {
+                    const targetDate = new Date(selectedBookingDate + 'T00:00:00');
+                    targetDate.setDate(targetDate.getDate() - advanceDays);
+                    advanceDateStr = `${targetDate.getMonth() + 1}月${targetDate.getDate()}日 `;
+                } else if (selectedBookingDate) {
+                    advanceDateStr = '当天 ';
+                }
                 calendarSummary.textContent = selectedBookingDate
-                    ? `已选择 ${selectedBookingDate}；将在提前 ${advanceDays} 天的 ${bookingTimeInput.value || '08:30'} 尝试预约。`
+                    ? `已选择 ${selectedBookingDate}；将在 ${advanceDateStr}${bookingTimeInput.value || '08:30'} 尝试预约。`
                     : '请选择预约日期。';
             }
         }
