@@ -1381,6 +1381,7 @@
         let calendarMonth = currentMonthValue();
         let seatBookingRefreshTimer = null;
         let seatBookingRefreshInFlight = false;
+        let suppressMonthSelectEvent = false;
 
         function todayPlus(days) {
             const current = new Date();
@@ -1398,6 +1399,7 @@
             if (!calendarMonthSelect) return;
             const {year, month} = splitMonthValue(selectedMonth);
             const center = new Date(year, month - 1, 1);
+            suppressMonthSelectEvent = true;
             calendarMonthSelect.innerHTML = '';
             for (let offset = -12; offset <= 12; offset += 1) {
                 const value = new Date(center.getFullYear(), center.getMonth() + offset, 1);
@@ -1407,6 +1409,7 @@
                 calendarMonthSelect.appendChild(option);
             }
             calendarMonthSelect.value = selectedMonth;
+            suppressMonthSelectEvent = false;
         }
 
         function selectBookingDate(isoDate, options = {}) {
@@ -1466,8 +1469,11 @@
                 button.innerHTML = `<strong>${current.getDate()}</strong><small>${monthValue !== calendarMonth ? monthValue : WEEKDAY_NAMES[current.getDay()]}</small>${bookedSeat ? `<span class="seat-calendar-seat ${bookedSeat.status || 'pending'}">${escapeHtml(bookedSeat.seatName || bookedSeat.seatId)} · ${bookedSeat.status === 'success' ? '成功' : '预约中'}</span>` : ''}`;
                 button.addEventListener('click', async () => {
                     if (button.disabled) return;
-                    if (monthValue !== calendarMonth) calendarMonth = monthValue;
-                    selectBookingDate(iso, {loading: true});
+                    if (monthValue !== calendarMonth) {
+                        calendarMonth = monthValue;
+                        await refreshSeatBookingMonth();
+                    }
+                    selectBookingDate(iso, {loading: true, jumpMonth: false});
                     await fetchSeatsForSelectedDate();
                 });
                 cell.appendChild(button);
@@ -1539,7 +1545,6 @@
             advanceDaysInput.value = String(Math.max(0, Math.min(7, Number(settings.advanceDays || 0))));
             enabledInput.checked = Boolean(settings.enabled);
             badge.textContent = settings.enabled ? `已启用 ${settings.bookingTime || '08:30'}` : '未启用';
-            renderCalendar();
         }
 
         function escapeHtml(value) {
@@ -1599,7 +1604,7 @@
                         method: 'PUT',
                         body: JSON.stringify({bookingDate: selectedBookingDate, seatId: seat.id, seatName: seat.name || seat.id}),
                     });
-                    calendarSeatPlans = data.plans || calendarSeatPlans;
+                    Object.assign(calendarSeatPlans, data.plans || {});
                     renderCalendar();
                     statusText.textContent = `${selectedBookingDate} 已确认预约座位：${seat.name || seat.id}`;
                 });
@@ -1641,7 +1646,7 @@
             const monthQuery = options.month ? `?month=${encodeURIComponent(options.month)}` : '';
             const data = await apiFetch(`/api/seat-booking${monthQuery}`);
             if (!options.preserveSettings) fillSettings(data.settings || {}, {preservePicker: options.preservePicker});
-            calendarSeatPlans = data.plans || data.seatBookings || {};
+            Object.assign(calendarSeatPlans, data.plans || data.seatBookings || {});
             renderCalendar();
             renderRuns(data.runs || []);
             renderSchedulerStatus(data.scheduler || {});
@@ -1650,7 +1655,12 @@
         }
 
         async function refreshSeatBookingMonth() {
-            return loadSeatBooking({month: calendarMonth, preserveSettings: true, preservePicker: true, updateStatus: false});
+            try {
+                return await loadSeatBooking({month: calendarMonth, preserveSettings: true, preservePicker: true, updateStatus: false});
+            } catch (error) {
+                statusText.textContent = `加载预约数据失败：${error.message}`;
+                renderCalendar();
+            }
         }
 
         async function refreshSeatBookingSilently() {
@@ -1735,6 +1745,7 @@
                 body: JSON.stringify(readPayload(includePassword)),
             });
             fillSettings(data.settings || {}, options);
+            renderCalendar();
             statusText.textContent = '座位预约配置已保存。';
         }
 
@@ -1751,18 +1762,16 @@
             });
             if (seatFilterInput) seatFilterInput.addEventListener('input', renderSeats);
             if (calendarMonthSelect) calendarMonthSelect.addEventListener('change', async () => {
+                if (suppressMonthSelectEvent) return;
                 calendarMonth = calendarMonthSelect.value;
-                renderCalendar();
                 await refreshSeatBookingMonth();
             });
             if (prevMonthBtn) prevMonthBtn.addEventListener('click', async () => {
                 calendarMonth = addMonths(calendarMonth, -1);
-                renderCalendar();
                 await refreshSeatBookingMonth();
             });
             if (nextMonthBtn) nextMonthBtn.addEventListener('click', async () => {
                 calendarMonth = addMonths(calendarMonth, 1);
-                renderCalendar();
                 await refreshSeatBookingMonth();
             });
             if (advanceDaysInput) advanceDaysInput.addEventListener('change', renderCalendar);
@@ -1779,10 +1788,10 @@
                         seatPickerVisible = false;
                         bookingDateInput.value = selectedBookingDate;
                         const monthData = await apiFetch(`/api/seat-booking?month=${encodeURIComponent(calendarMonth)}`);
-                        calendarSeatPlans = monthData.plans || monthData.seatBookings || {};
+                        Object.assign(calendarSeatPlans, monthData.plans || monthData.seatBookings || {});
                         renderRuns(monthData.runs || []);
                     } else {
-                        calendarSeatPlans = data.plans || calendarSeatPlans;
+                        Object.assign(calendarSeatPlans, data.plans || {});
                         renderRuns(data.runs || []);
                     }
                     renderCalendar();
